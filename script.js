@@ -3462,6 +3462,10 @@ function bindEvents() {
   updateLoginCommunityVisibility();
   byId('report-lost').addEventListener('click', () => openReport('lost'));
   byId('report-found').addEventListener('click', () => openReport('found'));
+  byId('board-back-to-menu').addEventListener('click', () => {
+    showPortal();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
   byId('portal-open-board').addEventListener('click', () => {
     showBoard();
     loadItems();

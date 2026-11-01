@@ -12,8 +12,8 @@
         if (localStorage.getItem('khonghai-theme') === 'dark') document.documentElement.dataset.theme = 'dark';
       } catch {}
     </script>
-    <link rel="stylesheet" href="style.css?v=profile-dark-form-3" />
-    <script src="script.js?v=restaurant-card-photo-2" defer></script>
+    <link rel="stylesheet" href="style.css?v=board-back-button-1" />
+    <script src="script.js?v=board-back-button-1" defer></script>
 </head>
 <body>
     <header class="topbar">
@@ -229,7 +229,8 @@
           <p id="restaurants-empty" class="restaurant-empty hidden"></p>
           <p id="restaurants-status" class="form-message" aria-live="polite"></p>
         </section>
-          <section class="hero" aria-labelledby="hero-title">
+        <div class="board-page-nav"><button class="button issue-page-back" id="board-back-to-menu" type="button"><span aria-hidden="true">←</span> กลับไปเลือกเมนู</button></div>
+        <section class="hero" aria-labelledby="hero-title">
             <div class="hero-copy">
               <div class="eyebrow">ศูนย์ของหายและของที่พบ · ร่วมใจช่วยกัน</div>
               <h1 id="hero-title">ของหายก็มีโอกาสได้คืน<br /><span>เริ่มตามหาได้ที่นี่</span></h1>

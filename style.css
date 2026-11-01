@@ -5723,3 +5723,12 @@ html[data-theme="dark"] #profile-dialog textarea {
 html[data-theme="dark"] #profile-dialog input::placeholder,
 html[data-theme="dark"] #profile-dialog textarea::placeholder { color: #9eafa2; opacity: 1; }
 @media (max-width: 700px) { .portal-activity { grid-template-columns: 1fr; } .portal-notification-summary, .portal-workorders-link { align-items: flex-start; flex-direction: column; gap: 4px; } }
+
+/* A direct route back to the service chooser from the lost-and-found board. */
+.board-page-nav { display: none; margin: 0 0 14px; }
+#app:not(.portal-mode):not(.admin-mode):not(.issue-mode):not(.restaurant-mode) > .board-page-nav { display: flex; }
+.board-page-nav .issue-page-back { min-height: 42px; margin: 0; padding: 8px 14px; border-color: #cbd9ce; background: rgba(255,255,255,.82); color: #285840; font-size: 14px; font-weight: 750; }
+.board-page-nav .issue-page-back:hover { border-color: #83ad90; background: #f1f7f1; }
+html[data-theme="dark"] .board-page-nav .issue-page-back { border-color: #405347; background: #1b2920; color: #dce8dd; }
+html[data-theme="dark"] .board-page-nav .issue-page-back:hover { border-color: #679277; background: #22352a; }
+@media (max-width: 700px) { .board-page-nav { margin-bottom: 10px; } .board-page-nav .issue-page-back { min-height: 40px; font-size: 13px; } }
