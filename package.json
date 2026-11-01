@@ -1,8 +1,8 @@
 {
-  "name": "found-it-school-lost-and-found",
+  "name": "campulse-school-community",
   "version": "1.0.0",
   "private": true,
-  "description": "A local school lost and found app",
+  "description": "School community services platform",
   "scripts": {
     "start": "node server.js",
     "test": "node --test"

@@ -2119,6 +2119,6 @@ if (process.env.VERCEL) {
 } else {
   const HOST = process.env.HOST || (process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1');
   http.createServer(handler).listen(PORT, HOST, () =>
-    console.log(`Found It is running at http://${HOST}:${PORT}`),
+    console.log(`CAMPULSE is running at http://${HOST}:${PORT}`),
   );
 }
