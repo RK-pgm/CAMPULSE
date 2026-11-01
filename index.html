@@ -63,6 +63,7 @@
               required
               placeholder="กรอกรหัสนักเรียน"
             />
+            <p class="form-hint">รหัสนักเรียนทั่วไปใช้ตัวเลข 4–12 หลัก · ระบบตรวจรูปแบบเท่านั้น ยังยืนยันกับทะเบียนโรงเรียนไม่ได้</p>
             <label for="signup-community">ชุมชนที่ต้องการเข้า <span class="required-mark">*</span></label>
             <select id="signup-community" name="schoolId" required>
               <option value="">เลือกโรงเรียนหรือสาธารณะก่อน</option>
@@ -75,10 +76,12 @@
               name="password"
               type="password"
               autocomplete="new-password"
-              minlength="8"
+              minlength="10"
+              maxlength="128"
               required
-              placeholder="อย่างน้อย 8 ตัวอักษร"
+              placeholder="อย่างน้อย 10 ตัว มีตัวพิมพ์เล็ก ใหญ่ และตัวเลข"
             />
+            <p class="form-hint">ตั้งรหัสผ่านอย่างน้อย 10 ตัวอักษร มีตัวพิมพ์เล็ก ตัวพิมพ์ใหญ่ และตัวเลข</p>
             <div id="admin-setup-field" class="admin-setup-field hidden">
               <label for="admin-setup-code">รหัสตั้งค่าบัญชีผู้ดูแล</label>
               <input
@@ -109,13 +112,15 @@
               required
               placeholder="เช่น รหัสนักเรียน หรือ A1010"
             />
-            <label for="login-community">เลือกชุมชนที่จะเข้า <span class="required-mark">*</span></label>
-            <select id="login-community" name="schoolId" required>
-              <option value="">เลือกโรงเรียนหรือสาธารณะก่อน</option>
-              <option value="public">สาธารณะ · ดูประกาศที่เปิดให้ทุกโรงเรียน</option>
-            </select>
-            <p class="form-hint auth-community-hint">เลือกได้ทุกครั้งที่เข้าสู่ระบบ และเปลี่ยนได้ภายหลังที่โปรไฟล์</p>
-        <label for="login-password">รหัสผ่าน</label>
+            <div id="login-community-field" class="auth-login-community hidden">
+              <label for="login-community">ขอบเขตโรงเรียนของผู้ดูแล <span class="required-mark">*</span></label>
+              <select id="login-community" name="schoolId" required>
+                <option value="">เลือกโรงเรียนหรือสาธารณะก่อน</option>
+                <option value="public">สาธารณะ · ทุกโรงเรียน</option>
+              </select>
+              <p class="form-hint">ตัวเลือกนี้ใช้เฉพาะบัญชีผู้ดูแล เพื่อกำหนดขอบเขตแผงควบคุม</p>
+            </div>
+            <label for="login-password">รหัสผ่าน</label>
             <input
               id="login-password"
               name="password"
@@ -125,6 +130,7 @@
             />
             <p class="form-message" id="login-message" aria-live="polite"></p>
             <button class="button primary full" type="submit">เข้าสู่ระบบ</button>
+            <p class="form-hint login-recovery-hint">ลืมรหัสผ่าน? ติดต่อผู้ดูแลโรงเรียนเพื่อยืนยันตัวตนก่อนรีเซ็ต บัญชีนี้ยังไม่มีอีเมลหรือเบอร์โทรที่ยืนยันไว้สำหรับกู้คืนอัตโนมัติ</p>
             <p class="switch-copy">
               ยังไม่มีบัญชี?
               <button class="text-button" id="to-signup" type="button">สร้างบัญชี</button>
@@ -167,6 +173,10 @@
                 <span class="portal-choice-copy"><span class="portal-choice-kicker">ร้านค้าในโรงเรียน</span><strong>ร้านอาหาร</strong><span>ดูร้าน เมนู ราคา และคะแนนรีวิวจากสมาชิกในโรงเรียน</span></span>
                 <span class="portal-choice-cta">เลือกร้านอาหาร <span aria-hidden="true">→</span></span>
               </button>
+            </div>
+            <div class="portal-activity" aria-label="ความเคลื่อนไหวของบัญชี">
+              <button id="portal-notifications-open" class="portal-notification-summary hidden" type="button"><span aria-hidden="true">🔔</span><span id="portal-notifications-text">มีการแจ้งเตือนใหม่</span><span aria-hidden="true">ดูแจ้งเตือน →</span></button>
+              <button id="portal-open-workorders" class="portal-workorders-link" type="button"><span>ติดตามเรื่องที่ฉันแจ้ง</span><span>ดูสถานะงานที่ส่งให้โรงเรียน →</span></button>
             </div>
             <p class="portal-private-note"><span aria-hidden="true">✓</span> ติดตามประกาศและเรื่องที่แจ้งได้จากบัญชีของคุณ</p>
           </section>
@@ -528,8 +538,8 @@
         <section class="report-section" aria-labelledby="report-owner-heading">
           <div class="report-section-heading"><h3 id="report-owner-heading">ข้อมูลผู้แจ้ง</h3><p>ชื่อและกลุ่มคนที่จะเห็นประกาศ</p></div>
         <label for="item-reporter">ชื่อผู้แจ้ง</label
-        ><input id="item-reporter" name="reporterName" required maxlength="80" placeholder="ชื่อ–นามสกุลผู้แจ้ง" />
-        <p class="form-hint">ระบบเติมชื่อจากบัญชีที่เข้าสู่ระบบให้อัตโนมัติ แก้ไขได้ก่อนส่ง และชื่อนี้จะแสดงบนประกาศ</p>
+        ><input id="item-reporter" name="reporterName" readonly maxlength="80" placeholder="ชื่อจากบัญชีที่เข้าสู่ระบบ" />
+        <p class="form-hint">ใช้ชื่อจากบัญชีที่เข้าสู่ระบบเพื่อป้องกันการแอบอ้าง</p>
         <label for="item-audience">โพสต์ไปที่</label>
         <select id="item-audience" name="visibility" aria-describedby="item-audience-hint">
           <option value="school">ชุมชนโรงเรียนของฉัน</option>
@@ -816,9 +826,10 @@
         <label for="current-password">รหัสผ่านเดิม</label>
         <input id="current-password" type="password" autocomplete="current-password" required />
         <label for="new-password">รหัสผ่านใหม่</label>
-        <input id="new-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required />
+        <input id="new-password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required />
+        <p class="form-hint">อย่างน้อย 10 ตัวอักษร มีตัวพิมพ์เล็ก ตัวพิมพ์ใหญ่ และตัวเลข</p>
         <label for="confirm-new-password">ยืนยันรหัสผ่านใหม่</label>
-        <input id="confirm-new-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required />
+        <input id="confirm-new-password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required />
         <p id="change-password-status" class="form-message" aria-live="polite"></p>
         <div class="dialog-actions"><button class="button" id="cancel-change-password" type="button">ยกเลิก</button><button class="button primary" type="submit">บันทึกรหัสผ่านใหม่</button></div>
       </form>

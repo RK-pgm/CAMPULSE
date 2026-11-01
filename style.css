@@ -5692,3 +5692,23 @@ html[data-theme="dark"] .admin-stats-stale-row span { color: #b7c7ba; }
   html[data-theme="dark"] .nav.is-open { border-color: #3b4c40; background: #18231c; }
 }
 html[data-theme="dark"] .restaurant-card-photo-frame { border-color: #3c4d41; background: #202d24; }
+
+/* Make account activity and issue follow-up discoverable from the signed-in landing page. */
+.portal-activity { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; max-width: 1320px; margin: 16px auto 0; }
+.portal-notification-summary, .portal-workorders-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 54px; padding: 12px 16px; border: 1px solid #d8e5d8; border-radius: 14px; background: rgba(255,255,255,.84); color: #285840; font: inherit; text-align: left; cursor: pointer; }
+.portal-notification-summary { border-color: #eadfbf; background: #fff9e9; color: #765b1d; }
+.portal-notification-summary span:last-child, .portal-workorders-link span:last-child { flex: 0 0 auto; font-size: 12px; font-weight: 700; }
+.portal-workorders-link span:first-child { font-weight: 800; }
+.portal-notification-summary:hover, .portal-workorders-link:hover { border-color: #88b793; }
+.login-recovery-hint { padding: 10px 12px; border-left: 3px solid #c8a653; border-radius: 8px; background: #faf6e9; }
+html[data-theme="dark"] .portal-notification-summary, html[data-theme="dark"] .portal-workorders-link { border-color: #405347; background: #1b2920; color: #dce8dd; }
+html[data-theme="dark"] .portal-notification-summary { border-color: #685a36; background: #302c20; color: #f0dfaa; }
+html[data-theme="dark"] .login-recovery-hint { border-color: #88723d; background: #2c2a20; color: #dfd5ad; }
+html[data-theme="dark"] #profile-dialog .dialog-card { color: #e8f0e9; }
+html[data-theme="dark"] #profile-dialog .dialog-card > h2,
+html[data-theme="dark"] #profile-dialog .dialog-card > label,
+html[data-theme="dark"] #profile-dialog .dialog-card > p.subtext,
+html[data-theme="dark"] #profile-dialog .dialog-card .community-points-panel,
+html[data-theme="dark"] #profile-dialog .dialog-card .community-points-panel p { color: #dce8dd; }
+html[data-theme="dark"] #profile-dialog .dialog-card input[readonly] { border-color: #405247; background: #1b2920; color: #dce8dd; opacity: 1; }
+@media (max-width: 700px) { .portal-activity { grid-template-columns: 1fr; } .portal-notification-summary, .portal-workorders-link { align-items: flex-start; flex-direction: column; gap: 4px; } }

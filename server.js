@@ -9,6 +9,7 @@ const scrypt = promisify(crypto.scrypt);
 const { buildWorkOrderImpact } = require('./lib/work-order-impact');
 const { buildRestaurantList, saveRestaurantRating, normalizeRestaurantMenuInputs } = require('./lib/restaurant-service');
 const { buildAdminStats } = require('./lib/admin-stats');
+const { isValidStudentId, isStrongPassword } = require('./lib/account-validation');
 const ROOT = process.cwd();
 const DATA_DIR = process.env.DATA_DIR || (process.env.VERCEL ? path.join('/tmp', 'found-it', 'data') : path.join(ROOT, 'data'));
 const PHOTO_DIR = process.env.UPLOAD_DIR || (process.env.VERCEL ? path.join('/tmp', 'found-it', 'uploads') : path.join(ROOT, 'uploads'));
@@ -738,7 +739,7 @@ async function handler(req, res) {
       account.schoolId = selectedSchool?.id || '';
       account.school = selectedSchool?.name || '';
       store.items.forEach((item) => {
-        if (item.ownerId === user.id) item.ownerName = name;
+        if (item.ownerId === user.id) { item.ownerName = name; item.reporterName = name; }
       });
       await writeStore(store);
       return json(res, 200, { user: cleanUser(account) });
@@ -751,8 +752,8 @@ async function handler(req, res) {
       const body = await readBody(req);
       const currentPassword = String(body.currentPassword || '');
       const newPassword = String(body.newPassword || '');
-      if (newPassword.length < 8 || newPassword.length > 128)
-        return json(res, 400, { error: 'รหัสผ่านใหม่ต้องมีความยาว 8–128 ตัวอักษร' });
+      if (!isStrongPassword(newPassword))
+        return json(res, 400, { error: 'รหัสผ่านใหม่ต้องมี 10–128 ตัวอักษร และมีตัวพิมพ์เล็ก ตัวพิมพ์ใหญ่ และตัวเลข' });
       const currentHash = Buffer.from(user.passwordHash || '', 'hex');
       const suppliedHash = user.salt ? await scrypt(currentPassword, user.salt, 64) : Buffer.alloc(64);
       if (currentHash.length !== 64 || !crypto.timingSafeEqual(suppliedHash, currentHash))
@@ -774,23 +775,24 @@ async function handler(req, res) {
       const name = String(body.name || '').trim();
       const studentId = String(body.studentId || '').trim();
       const password = String(body.password || '');
+      const adminCandidate = isAdminIdentity(name, studentId);
+      const configuredStaffId = String(process.env.STAFF_STUDENT_ID || '').trim().toLowerCase();
       if (name.length < 2 || name.length > 80)
         return json(res, 400, { error: 'กรุณากรอกชื่อความยาว 2–80 ตัวอักษร' });
-      if (!/^[A-Za-z0-9-]{2,40}$/.test(studentId))
+      if (!isValidStudentId(studentId, { adminCandidate, staffStudentId: configuredStaffId }))
         return json(res, 400, {
-          error: 'รหัสนักเรียนต้องมีความยาว 2–40 ตัว และใช้ได้เฉพาะตัวอักษรภาษาอังกฤษ ตัวเลข หรือเครื่องหมายขีดกลาง',
+          error: 'รหัสนักเรียนทั่วไปต้องเป็นตัวเลข 4–12 หลัก (ข้อจำกัดนี้ตรวจรูปแบบเท่านั้น ไม่ได้ยืนยันกับทะเบียนโรงเรียน)',
         });
       if (studentId.toLowerCase() === ADMIN_LOGIN_ID.toLowerCase())
         return json(res, 403, { error: 'รหัสนี้สงวนไว้สำหรับบัญชีผู้ดูแลระบบ' });
-      if (password.length < 8 || password.length > 128)
-        return json(res, 400, { error: 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' });
+      if (!isStrongPassword(password))
+        return json(res, 400, { error: 'รหัสผ่านต้องมี 10–128 ตัวอักษร และมีตัวพิมพ์เล็ก ตัวพิมพ์ใหญ่ และตัวเลข' });
       const requestedSchoolId = String(body.schoolId || '').trim();
       const selectedSchool = requestedSchoolId === 'public'
         ? null
         : SCHOOLS.find((school) => school.id === requestedSchoolId);
       if (!requestedSchoolId || (requestedSchoolId !== 'public' && !selectedSchool))
         return json(res, 400, { error: 'กรุณาเลือกโรงเรียนหรือสาธารณะก่อนสมัครสมาชิก' });
-      const adminCandidate = isAdminIdentity(name, studentId);
       if (studentId.toLocaleUpperCase() === ADMIN_STUDENT_ID && !adminCandidate)
         return json(res, 403, { error: 'รหัสนักเรียนนี้สงวนไว้สำหรับบัญชีผู้ดูแลระบบ' });
       if (adminCandidate && !matchesAdminSetupCode(body.adminSetupCode))
@@ -902,15 +904,6 @@ async function handler(req, res) {
         loginAttempts.set(ip, attempts);
         return json(res, 401, { error: 'รหัสนักเรียนหรือรหัสผ่านไม่ถูกต้อง' });
       }
-      const requestedSchoolId = String(body.schoolId || '').trim();
-      const selectedSchool = requestedSchoolId === 'public'
-        ? null
-        : SCHOOLS.find((school) => school.id === requestedSchoolId);
-      if (!requestedSchoolId || (requestedSchoolId !== 'public' && !selectedSchool))
-        return json(res, 400, { error: 'กรุณาเลือกโรงเรียนหรือสาธารณะก่อนเข้าสู่ระบบ' });
-      user.schoolId = selectedSchool?.id || '';
-      user.school = selectedSchool?.name || '';
-      await writeStore(store);
       loginAttempts.delete(ip);
       const cookie = sessionCookie(user.id, user.sessionVersion || 0);
       return json(
@@ -1267,7 +1260,7 @@ async function handler(req, res) {
       if (!reward) return json(res, 400, { error: 'จำนวนสินน้ำใจต้องเป็นจำนวนเต็มตั้งแต่ 1 ถึง 1,000,000 บาท' });
       item.type = body.type;
       item.itemName = itemName;
-      item.reporterName = String(body.reporterName || user.name).trim().slice(0, 80);
+      item.reporterName = item.ownerId === user.id ? user.name : (item.reporterName || item.ownerName || 'ไม่ระบุชื่อ');
       item.category = category;
       item.color = String(body.color || '').trim().slice(0, 40);
       item.description = String(body.description || '').trim().slice(0, 500);
@@ -1631,7 +1624,6 @@ async function handler(req, res) {
       if (!user) return;
       const body = await readBody(req);
       const itemName = String(body.itemName || '').trim();
-      const reporterName = String(body.reporterName || '').trim();
       const type = body.type;
       const visibility = body.visibility == null ? 'public' : String(body.visibility);
       const reward = parseOptionalReward(body, type);
@@ -1640,8 +1632,6 @@ async function handler(req, res) {
       const date = String(body.date || '');
       if (itemName.length < 2 || itemName.length > 90)
         return json(res, 400, { error: 'กรุณากรอกชื่อสิ่งของความยาว 2–90 ตัวอักษร' });
-      if (reporterName.length < 2 || reporterName.length > 80)
-        return json(res, 400, { error: 'กรุณากรอกชื่อผู้แจ้งความยาว 2–80 ตัวอักษร' });
       if (!['lost', 'found'].includes(type))
         return json(res, 400, { error: 'กรุณาเลือกประเภทประกาศของหายหรือของที่พบ' });
       if (!['public', 'school'].includes(visibility))
@@ -1671,7 +1661,7 @@ async function handler(req, res) {
         id: crypto.randomUUID(),
         type,
         itemName,
-        reporterName,
+        reporterName: user.name,
         category,
         color: String(body.color || '')
           .trim()

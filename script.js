@@ -123,6 +123,7 @@ function setAuthView(id) {
     byId('login-title').textContent = 'ยินดีต้อนรับกลับ';
     byId('login-intro').textContent = 'เข้าสู่ระบบเพื่อดูและติดตามประกาศของโรงเรียน';
     if (byId('login-id').value === 'A1010') byId('login-id').value = '';
+    updateLoginCommunityVisibility();
   }
   document.querySelectorAll('.auth-view').forEach((view) => view.classList.remove('active'));
   byId(id).classList.add('active');
@@ -131,6 +132,7 @@ function openAdminLogin() {
   byId('login-title').textContent = 'เข้าสู่ระบบผู้ดูแล';
   byId('login-intro').textContent = 'สำหรับเจ้าหน้าที่แผงควบคุมงานประชาสัมพันธ์';
   byId('login-id').value = 'A1010';
+  updateLoginCommunityVisibility();
   byId('login-password').value = '';
   document.querySelectorAll('.auth-view').forEach((view) => view.classList.remove('active'));
   byId('login-form').classList.add('active');
@@ -443,6 +445,13 @@ function renderAuthCommunityOptions() {
     if ([...select.options].some((option) => option.value === selectedValue)) select.value = selectedValue;
   });
 }
+function updateLoginCommunityVisibility() {
+  const isAdminLogin = byId('login-id').value.trim().toUpperCase() === 'A1010';
+  const field = byId('login-community-field');
+  const select = byId('login-community');
+  field.classList.toggle('hidden', !isAdminLogin);
+  select.required = isAdminLogin;
+}
 async function submitAuth(event, kind) {
   event.preventDefault();
   const form = event.currentTarget;
@@ -461,7 +470,7 @@ async function submitAuth(event, kind) {
       : {
           studentId: byId('login-id').value.trim(),
           password: byId('login-password').value,
-          schoolId: byId('login-community').value,
+          ...(byId('login-id').value.trim().toUpperCase() === 'A1010' ? { schoolId: byId('login-community').value } : {}),
         };
   const button = form.querySelector('button[type="submit"]');
   button.disabled = true;
@@ -1455,9 +1464,16 @@ async function refreshNotificationCount() {
     const result = await api('/api/notifications');
     state.unreadNotifications = result.unreadCount || 0;
     updateNotificationButton();
+    renderPortalNotificationSummary();
   } catch {
     // Keep the board usable when notifications are temporarily unavailable.
   }
+}
+function renderPortalNotificationSummary() {
+  const summary = byId('portal-notifications-open');
+  if (!summary) return;
+  summary.classList.toggle('hidden', !state.unreadNotifications);
+  byId('portal-notifications-text').textContent = `มีแจ้งเตือนที่ยังไม่อ่าน ${state.unreadNotifications || 0} รายการ`;
 }
 async function openNotifications() {
   const list = byId('notification-list');
@@ -1541,6 +1557,7 @@ async function loadNotificationPage(offset, append) {
     state.unreadNotifications = result.unreadCount || 0;
   }
   updateNotificationButton();
+  renderPortalNotificationSummary();
 }
 async function openItemDetails(itemId, replyToId = null) {
   let item = state.items.find((entry) => entry.id === itemId);
@@ -3391,6 +3408,7 @@ function bindEvents() {
   byId('login-form').addEventListener('submit', (event) => submitAuth(event, 'login'));
   byId('signup-name').addEventListener('input', updateAdminSetupVisibility);
   byId('signup-id').addEventListener('input', updateAdminSetupVisibility);
+  byId('login-id').addEventListener('input', updateLoginCommunityVisibility);
   byId('admin-refresh').addEventListener('click', loadAdminData);
   byId('admin-stats-range').addEventListener('change', loadAdminStats);
   byId('admin-panel').addEventListener('click', (event) => {
@@ -3441,6 +3459,7 @@ function bindEvents() {
   });
   byId('admin-open-inbox').addEventListener('click', openInbox);
   updateAdminSetupVisibility();
+  updateLoginCommunityVisibility();
   byId('report-lost').addEventListener('click', () => openReport('lost'));
   byId('report-found').addEventListener('click', () => openReport('found'));
   byId('portal-open-board').addEventListener('click', () => {
@@ -3450,6 +3469,12 @@ function bindEvents() {
   });
   byId('portal-open-issue').addEventListener('click', openSchoolIssue);
   byId('portal-open-restaurants').addEventListener('click', openRestaurantPage);
+  byId('portal-notifications-open').addEventListener('click', openNotifications);
+  byId('portal-open-workorders').addEventListener('click', () => {
+    showBoard();
+    loadWorkOrders();
+    requestAnimationFrame(() => byId('student-workorders').scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  });
   byId('close-restaurants-page').addEventListener('click', showPortal);
   byId('restaurant-search').addEventListener('input', (event) => {
     state.restaurantSearch = event.currentTarget.value;
