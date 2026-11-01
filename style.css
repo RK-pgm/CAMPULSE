@@ -5402,15 +5402,17 @@ html[data-theme="dark"] .issue-page-form input, html[data-theme="dark"] .issue-p
 .restaurant-category.is-active { border-color: #287650; background: #287650; color: #fff; }
 .restaurants-list { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
 .restaurant-card { display: flex; min-width: 0; flex-direction: column; gap: 9px; padding: 18px; border: 1px solid #dce7dc; border-radius: 17px; background: #fff; box-shadow: 0 5px 16px rgba(31,70,48,.045); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
-.restaurant-card.has-photo { position: relative; }
-.restaurant-card-photo { position: absolute; top: 18px; right: 18px; width: clamp(88px, 30%, 132px); aspect-ratio: 1; height: auto; border: 1px solid #dce7dc; border-radius: 12px; background: #edf3ed; object-fit: cover; }
+.restaurant-card.has-photo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 44%); grid-template-rows: auto auto auto 1fr auto auto; column-gap: 16px; row-gap: 9px; align-items: start; }
+.restaurant-card-photo-frame { position: relative; grid-column: 2; grid-row: 1 / span 4; align-self: stretch; min-width: 0; overflow: hidden; border: 1px solid #dce7dc; border-radius: 14px; background: #edf3ed; }
+.restaurant-card-photo-frame::before { content: ""; display: block; padding-top: 100%; }
+.restaurant-card-photo { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
 .restaurant-card.has-photo .restaurant-card-top,
 .restaurant-card.has-photo > h2,
 .restaurant-card.has-photo > .restaurant-card-location,
-.restaurant-card.has-photo > .restaurant-card-description { max-width: calc(56% - 10px); }
-.restaurant-card.has-photo .restaurant-card-top { min-height: 42px; }
-.restaurant-card.has-photo > h2 { min-height: 52px; overflow-wrap: anywhere; }
-.restaurant-card.has-photo > .restaurant-card-description { min-height: 88px; }
+.restaurant-card.has-photo > .restaurant-card-description { grid-column: 1; }
+.restaurant-card.has-photo > h2 { overflow-wrap: anywhere; }
+.restaurant-card.has-photo > .restaurant-card-footer,
+.restaurant-card.has-photo > .restaurant-card-open { grid-column: 1 / -1; }
 .restaurant-card:hover { transform: translateY(-2px); border-color: #a8c8af; box-shadow: 0 12px 24px rgba(31,70,48,.09); }
 .restaurant-card-top { display: flex; align-items: center; gap: 9px; }
 .restaurant-card-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 12px; background: #edf6ef; color: #287650; font-size: 20px; }
@@ -5515,7 +5517,7 @@ html[data-theme="dark"] .issue-page-form input, html[data-theme="dark"] .issue-p
 #app.restaurant-mode > .issue-page, #app.restaurant-mode > .admin-panel { display: none !important; }
 #app.restaurant-mode > .restaurant-page { display: block; }
 @media (max-width: 980px) { .portal-choices { grid-template-columns: repeat(2,minmax(0,1fr)); } .restaurants-list { grid-template-columns: repeat(2,minmax(0,1fr)); } }
-@media (max-width: 700px) { .restaurant-page { margin: 10px 0 24px; padding: 17px 12px; border-radius: 19px; } .restaurant-page-nav { margin-bottom: 23px; } .restaurant-page-header { margin-bottom: 21px; } .restaurant-page-header h1 { font-size: clamp(27px,8vw,36px); } .restaurant-toolbar { padding: 11px; gap: 11px; } .restaurant-search { min-height: 50px; padding-inline: 12px; } .restaurant-search input { height: 46px; font-size: 16px; } .restaurants-list { grid-template-columns: 1fr; } .restaurant-categories { gap: 6px; } .restaurant-category { padding-inline: 11px; } .restaurant-card { padding: 15px; } .restaurant-card-photo { top: 15px; right: 15px; width: clamp(80px, 28%, 112px); aspect-ratio: 1; height: auto; } .restaurant-card.has-photo .restaurant-card-top, .restaurant-card.has-photo > h2, .restaurant-card.has-photo > .restaurant-card-location, .restaurant-card.has-photo > .restaurant-card-description { max-width: calc(56% - 8px); } .admin-restaurant-fields, .admin-restaurant-edit-form { grid-template-columns: 1fr; } .admin-restaurant-menu-row { grid-template-columns: minmax(0,1fr) minmax(84px,.45fr) auto auto; gap: 6px; } .admin-restaurant-menu-row > label { font-size: 10px; } .admin-restaurant-menu-row .button { padding-inline: 9px; } .admin-new-menu-row { grid-template-columns: minmax(0,1fr) minmax(100px,.42fr) auto; gap: 7px; } }
+@media (max-width: 700px) { .restaurant-page { margin: 10px 0 24px; padding: 17px 12px; border-radius: 19px; } .restaurant-page-nav { margin-bottom: 23px; } .restaurant-page-header { margin-bottom: 21px; } .restaurant-page-header h1 { font-size: clamp(27px,8vw,36px); } .restaurant-toolbar { padding: 11px; gap: 11px; } .restaurant-search { min-height: 50px; padding-inline: 12px; } .restaurant-search input { height: 46px; font-size: 16px; } .restaurants-list { grid-template-columns: 1fr; } .restaurant-categories { gap: 6px; } .restaurant-category { padding-inline: 11px; } .restaurant-card { padding: 15px; } .restaurant-card.has-photo { grid-template-columns: minmax(0, 1fr) minmax(0, 42%); column-gap: 12px; } .admin-restaurant-fields, .admin-restaurant-edit-form { grid-template-columns: 1fr; } .admin-restaurant-menu-row { grid-template-columns: minmax(0,1fr) minmax(84px,.45fr) auto auto; gap: 6px; } .admin-restaurant-menu-row > label { font-size: 10px; } .admin-restaurant-menu-row .button { padding-inline: 9px; } .admin-new-menu-row { grid-template-columns: minmax(0,1fr) minmax(100px,.42fr) auto; gap: 7px; } }
 @media (max-width: 430px) { .portal-choices { grid-template-columns: 1fr; } .admin-restaurant-menu-row { grid-template-columns: minmax(0,1fr) 95px; } .admin-restaurant-menu-row .button { justify-self: start; } .admin-initial-menus-heading { align-items: flex-start; } .admin-initial-menus-heading p { max-width: 200px; } .admin-new-menu-row { grid-template-columns: minmax(0,1fr) 100px; } .admin-new-menu-row .admin-remove-new-menu { grid-column: 1 / -1; justify-self: start; } }
 
 .required-mark { color: #c34135; font-weight: 800; }
@@ -5689,3 +5691,4 @@ html[data-theme="dark"] .admin-stats-stale-row span { color: #b7c7ba; }
   html[data-theme="dark"] .mobile-nav-toggle { border-color: #3b4c40; background: #1d2a22; color: #c0e5c8; }
   html[data-theme="dark"] .nav.is-open { border-color: #3b4c40; background: #18231c; }
 }
+html[data-theme="dark"] .restaurant-card-photo-frame { border-color: #3c4d41; background: #202d24; }

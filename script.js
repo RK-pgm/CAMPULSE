@@ -1099,13 +1099,16 @@ function renderRestaurantList(requiresSchool = false) {
     card.className = 'restaurant-card';
     if (restaurant.photo) {
       card.classList.add('has-photo');
+      const frame = document.createElement('div');
+      frame.className = 'restaurant-card-photo-frame';
       const photo = document.createElement('img');
       photo.className = 'restaurant-card-photo';
       photo.src = restaurant.photo;
       photo.alt = `ภาพหน้าร้าน ${restaurant.name}`;
       photo.loading = 'lazy';
       photo.decoding = 'async';
-      card.append(photo);
+      frame.append(photo);
+      card.append(frame);
     }
     const top = document.createElement('div'); top.className = 'restaurant-card-top';
     const icon = document.createElement('span'); icon.className = `restaurant-card-icon restaurant-icon-${restaurant.category}`; icon.setAttribute('aria-hidden', 'true');
