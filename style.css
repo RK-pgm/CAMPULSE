@@ -4689,6 +4689,10 @@ html[data-theme="dark"] #item-dialog .camera-box { border-color: #405247; backgr
 html[data-theme="dark"] #item-dialog .dialog-actions { border-top-color: #3a4a3f; background: rgba(25, 36, 30, .97); }
 html[data-theme="dark"] .detail-fact,
 html[data-theme="dark"] .school-map-card { border-color: #3d4f43; background: #202d25; color: #d7e2d8; }
+html[data-theme="dark"] #profile-dialog .school-map-heading strong { color: #e4eee5; }
+html[data-theme="dark"] #profile-dialog .school-map-heading p,
+html[data-theme="dark"] #profile-dialog .school-map-empty { color: #bdcabe; }
+html[data-theme="dark"] #profile-dialog .school-map-card iframe { background: #18221c; }
 html[data-theme="dark"] .message-card,
 html[data-theme="dark"] #notification-list .message-card,
 html[data-theme="dark"] #message-list .comment-notice,
@@ -4717,6 +4721,9 @@ html[data-theme="dark"] .community-points-panel { border-color: #3e5a43; backgro
 html[data-theme="dark"] .community-points-panel h3,
 html[data-theme="dark"] .community-points-panel p { color: #d8e6da; }
 html[data-theme="dark"] #profile-dialog .community-points-panel > strong { border-color: #695d38; background: #39321f; color: #f1d98f; box-shadow: none; }
+html[data-theme="dark"] #profile-dialog .community-points-history { border-color: #3a4a3f; }
+html[data-theme="dark"] #profile-dialog .community-points-history li { color: #c5d2c7; }
+html[data-theme="dark"] #profile-dialog .community-points-history li strong { color: #a9dfb2; }
 html[data-theme="dark"] .reward-shop,
 html[data-theme="dark"] .reward-history { border-top-color: #3a4a3f; }
 html[data-theme="dark"] #profile-dialog .reward-shop-heading { border-bottom-color: #3a4a3f; }
@@ -4733,6 +4740,7 @@ html[data-theme="dark"] #profile-dialog .claim-history-open,
 html[data-theme="dark"] #profile-dialog .points-rules-button { border-color: #405347; background: #25342a; color: #d8e8da; }
 html[data-theme="dark"] #profile-dialog .claim-history-open:hover,
 html[data-theme="dark"] #profile-dialog .points-rules-button:hover { border-color: #608068; background: #2d4032; }
+html[data-theme="dark"] #profile-dialog .form-hint { color: #bdcabe; }
 html[data-theme="dark"] .points-rule-list li { border-color: #3a4b40; background: #202c25; }
 html[data-theme="dark"] .points-rule-value,
 html[data-theme="dark"] .points-rule-mark { border-color: #635833; background: #38311f; color: #efda98; }
@@ -4906,6 +4914,7 @@ html[data-theme="dark"] :focus-visible { outline-color: #a6e5b5; }
 
 /* Student profile and good-deed shop are welcoming and easy to scan. */
 #profile-dialog .dialog-card::before { background: linear-gradient(90deg, #277650, #62a978, #e4bf60); }
+#profile-dialog .dialog-card { background: radial-gradient(ellipse at 100% 0%, rgba(84,146,95,.07), transparent 32%), linear-gradient(180deg, #fffefa 0%, #f9fbf7 100%); }
 #profile-dialog .community-points-panel {
   border-color: #d4e6d6;
   background: radial-gradient(ellipse at 94% 8%, rgba(224, 190, 92, .16), transparent 40%), linear-gradient(130deg, #edf7ed, #fbfcf6);
@@ -4945,6 +4954,7 @@ html[data-theme="dark"] :focus-visible { outline-color: #a6e5b5; }
 #profile-dialog .reward-history { padding-top: 14px; }
 #profile-dialog .claim-history-open { min-height: 44px; margin-top: 10px; border-color: #d7e5d8; background: #f4f8f2; color: #2a684c; }
 #profile-dialog .claim-history-open:hover { border-color: #b6d1ba; background: #eaf4e9; }
+html[data-theme="dark"] #profile-dialog .dialog-card { background: radial-gradient(ellipse at 100% 0%, rgba(87,145,96,.11), transparent 34%), linear-gradient(180deg, #1d2a22 0%, #1a261f 100%); }
 
 /* Admin tools keep the same campus identity, with clearer data surfaces. */
 .admin-panel { gap: 18px; }
@@ -5315,7 +5325,7 @@ html[data-theme="dark"] #detail-dialog .comment-form .dialog-actions { border: 0
 .portal-intro h1 span { color: #2b7a54; }
 .portal-intro p { margin: 0; color: #65776a; font-size: 15px; }
 .portal-choices { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; max-width: 1320px; margin: auto; }
-.portal-choice { position: relative; display: grid; grid-template-columns: 52px minmax(0,1fr); align-content: start; gap: 14px 16px; min-height: 230px; padding: 24px; border: 1px solid #dce7dc; border-radius: 20px; background: rgba(255,255,255,.91); color: #183a31; text-align: left; cursor: pointer; box-shadow: 0 5px 16px rgba(31,70,48,.045); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.portal-choice { position: relative; display: grid; grid-template-columns: 52px minmax(0,1fr); grid-template-rows: minmax(0,1fr) auto; align-content: stretch; gap: 14px 16px; min-height: 230px; padding: 24px; border: 1px solid #dce7dc; border-radius: 20px; background: rgba(255,255,255,.91); color: #183a31; text-align: left; cursor: pointer; box-shadow: 0 5px 16px rgba(31,70,48,.045); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
 .portal-choice:hover { transform: translateY(-3px); border-color: #a8c8af; box-shadow: 0 14px 28px rgba(31,70,48,.11); }
 .portal-choice:focus-visible { outline: 3px solid #3b8c61; outline-offset: 3px; }
 .portal-choice-icon { display: grid; place-items: center; width: 52px; height: 52px; border: 1px solid #d7e8dc; border-radius: 16px; background: #edf6ef; color: #24734e; }
