@@ -5711,4 +5711,15 @@ html[data-theme="dark"] #profile-dialog .dialog-card > p.subtext,
 html[data-theme="dark"] #profile-dialog .dialog-card .community-points-panel,
 html[data-theme="dark"] #profile-dialog .dialog-card .community-points-panel p { color: #dce8dd; }
 html[data-theme="dark"] #profile-dialog .dialog-card input[readonly] { border-color: #405247; background: #1b2920; color: #dce8dd; opacity: 1; }
+html[data-theme="dark"] #profile-dialog input:not([type="checkbox"]),
+html[data-theme="dark"] #profile-dialog select,
+html[data-theme="dark"] #profile-dialog textarea {
+  border-color: #405247;
+  background: #141d17;
+  color: #edf4ee;
+  box-shadow: none;
+  color-scheme: dark;
+}
+html[data-theme="dark"] #profile-dialog input::placeholder,
+html[data-theme="dark"] #profile-dialog textarea::placeholder { color: #9eafa2; opacity: 1; }
 @media (max-width: 700px) { .portal-activity { grid-template-columns: 1fr; } .portal-notification-summary, .portal-workorders-link { align-items: flex-start; flex-direction: column; gap: 4px; } }
