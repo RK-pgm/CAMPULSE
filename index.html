@@ -12,8 +12,8 @@
         if (localStorage.getItem('khonghai-theme') === 'dark') document.documentElement.dataset.theme = 'dark';
       } catch {}
     </script>
-    <link rel="stylesheet" href="style.css?v=restaurant-photo-dark-1" />
-    <script src="script.js?v=restaurant-photo-dark-1" defer></script>
+    <link rel="stylesheet" href="style.css?v=admin-stats-1" />
+    <script src="script.js?v=admin-stats-1" defer></script>
 </head>
 <body>
     <header class="topbar">
@@ -369,6 +369,7 @@
           </div>
           <div class="admin-view-tabs" role="group" aria-label="เลือกหมวดแผงควบคุม">
             <button class="admin-view-button is-active" type="button" data-admin-view="overview" aria-pressed="true"><span>ภาพรวม</span></button>
+            <button class="admin-view-button" type="button" data-admin-view="stats" aria-pressed="false"><span>สถิติ</span></button>
             <button class="admin-view-button" type="button" data-admin-view="announcements" aria-pressed="false"><span>ประกาศทั้งหมด</span><b id="admin-nav-count-announcements">0</b></button>
             <button class="admin-view-button" type="button" data-admin-view="lost" aria-pressed="false"><span>ของหาย</span><b id="admin-nav-count-lost">0</b></button>
             <button class="admin-view-button" type="button" data-admin-view="found" aria-pressed="false"><span>ของที่พบ</span><b id="admin-nav-count-found">0</b></button>
@@ -425,6 +426,27 @@
                 <div id="admin-impact-categories" class="admin-impact-categories"></div>
               </article>
             </div>
+          </section>
+          <section class="admin-impact admin-analytics" data-admin-view-panel="stats" aria-labelledby="admin-analytics-title">
+            <div class="admin-impact-heading">
+              <div><span class="admin-attention-kicker">ข้อมูลจากประกาศจริง</span><h2 id="admin-analytics-title">สถิติการติดตามของหาย</h2><p id="admin-analytics-school">สรุปข้อมูลตามโรงเรียนที่แอดมินดูแล</p></div>
+              <label class="admin-analytics-range">ช่วงเวลา<select id="admin-stats-range"><option value="7">7 วัน</option><option value="30" selected>30 วัน</option><option value="90">90 วัน</option><option value="all">ทั้งหมด</option></select></label>
+            </div>
+            <div class="admin-impact-stats" aria-live="polite">
+              <article class="admin-impact-stat"><span>ประกาศในช่วงเวลา</span><strong id="admin-stats-total">—</strong><small id="admin-stats-period">30 วันล่าสุด</small></article>
+              <article class="admin-impact-stat"><span>ของหาย / ของที่พบ</span><strong id="admin-stats-types">—</strong><small>จำนวนประกาศแยกตามประเภท</small></article>
+              <article class="admin-impact-stat"><span>ปิดเรื่องแล้ว</span><strong id="admin-stats-closed">—</strong><small id="admin-stats-close-rate">อัตราปิดเรื่อง —</small></article>
+              <article class="admin-impact-stat"><span>คำร้องรอเจ้าของยืนยัน</span><strong id="admin-stats-claims">—</strong><small>คำร้องที่ยังรอดำเนินการ</small></article>
+              <article class="admin-impact-stat"><span>ประกาศค้างเกิน 7 วัน</span><strong id="admin-stats-stale">—</strong><small>รายการเปิดหรือกำลังตรวจสอบ</small></article>
+              <article class="admin-impact-stat"><span>เวลาปิดเรื่องค่ากลาง</span><strong id="admin-stats-time">—</strong><small id="admin-stats-time-note">คำนวณจากรายการที่ปิดแล้ว</small></article>
+            </div>
+            <div class="admin-impact-grid">
+              <article class="admin-impact-chart-card"><div class="admin-impact-card-heading"><h3>ประกาศรายวัน</h3><p>ของหายและของที่พบในช่วงเวลาที่เลือก</p></div><div id="admin-stats-trend" class="admin-impact-trend" aria-live="polite"></div><div class="admin-impact-legend"><span><i class="trend-new"></i>ของหาย</span><span><i class="trend-done"></i>ของที่พบ</span></div></article>
+              <article class="admin-impact-chart-card"><div class="admin-impact-card-heading"><h3>หมวดหมู่ที่พบมาก</h3><p>ช่วยดูหมวดของที่ควรให้ความสำคัญ</p></div><div id="admin-stats-categories" class="admin-impact-categories"></div></article>
+            </div>
+            <article class="admin-impact-chart-card"><div class="admin-impact-card-heading"><h3>จุดที่มีประกาศบ่อย</h3><p>ใช้วางแผนประชาสัมพันธ์และดูแลพื้นที่</p></div><div id="admin-stats-places" class="admin-stats-places"></div></article>
+            <article class="admin-impact-chart-card"><div class="admin-impact-card-heading"><h3>รายการที่ควรติดตาม</h3><p>ประกาศที่เปิดค้างเกิน 7 วัน</p></div><div id="admin-stats-stale-list" class="admin-stats-stale-list"></div></article>
+            <p id="admin-stats-message" class="form-message" aria-live="polite"></p>
           </section>
           <section class="admin-card admin-work-card" id="admin-items-card" data-admin-view-panel="announcements lost found" aria-labelledby="admin-work-title">
             <div class="admin-card-heading">

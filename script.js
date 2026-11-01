@@ -271,7 +271,7 @@ function openHelp() {
   byId('help-dialog').showModal();
 }
 function setAdminView(view) {
-  const allowedViews = ['overview', 'announcements', 'lost', 'found', 'issues', 'restaurants', 'members', 'reports'];
+  const allowedViews = ['overview', 'stats', 'announcements', 'lost', 'found', 'issues', 'restaurants', 'members', 'reports'];
   if (!allowedViews.includes(view)) return;
   state.adminView = view;
   document.querySelectorAll('[data-admin-view]').forEach((button) => {
@@ -3275,9 +3275,76 @@ async function loadAdminData() {
     byId('admin-nav-count-restaurants').textContent = String(state.adminRestaurants.length);
     renderAdminRestaurants(state.adminRestaurants, restaurantData.requiresSchool);
     setAdminView(state.adminView);
+    if (state.adminView === 'stats') await loadAdminStats();
   } catch (error) {
     setMessage('admin-message', error.message);
   }
+}
+function renderAdminStats(data) {
+  const totals = data.totals || {};
+  byId('admin-stats-total').textContent = String(totals.total ?? 0);
+  byId('admin-stats-period').textContent = data.range === 'all' ? 'ข้อมูลทั้งหมด' : `${data.range} วันล่าสุด`;
+  byId('admin-stats-types').textContent = `${totals.lost ?? 0} / ${totals.found ?? 0}`;
+  byId('admin-stats-closed').textContent = String(totals.resolved ?? 0);
+  byId('admin-stats-close-rate').textContent = `อัตราปิดเรื่อง ${totals.closeRate == null ? '—' : `${totals.closeRate}%`}`;
+  byId('admin-stats-claims').textContent = String(data.claims?.pending ?? 0);
+  byId('admin-stats-stale').textContent = String(data.backlog?.stale ?? 0);
+  const medianHours = data.closeTime?.medianHours;
+  byId('admin-stats-time').textContent = Number.isFinite(medianHours)
+    ? medianHours < 24 ? `${medianHours} ชม.` : `${(medianHours / 24).toFixed(1)} วัน`
+    : 'ยังไม่มีข้อมูล';
+  byId('admin-stats-time-note').textContent = `${data.closeTime?.n ?? 0} รายการที่คำนวณได้`;
+  const school = (data.schools || []).find((entry) => entry.id === data.schoolId);
+  byId('admin-analytics-school').textContent = data.schoolId === 'all' ? 'ทุกโรงเรียนที่อยู่ในระบบ' : `โรงเรียน${school?.name || data.schoolId}`;
+
+  const trend = byId('admin-stats-trend'); trend.replaceChildren();
+  const points = (data.trend || []).slice(-14);
+  const peak = Math.max(1, ...points.map((point) => Math.max(point.lost, point.found)));
+  if (!points.some((point) => point.lost || point.found)) {
+    const empty = document.createElement('p'); empty.className = 'admin-impact-empty'; empty.textContent = 'ยังไม่มีประกาศในช่วงเวลานี้'; trend.append(empty);
+  } else for (const point of points) {
+    const column = document.createElement('div'); column.className = 'admin-impact-week';
+    const bars = document.createElement('div'); bars.className = 'admin-impact-bars';
+    for (const [key, value] of [['created', point.lost], ['resolved', point.found]]) {
+      const bar = document.createElement('span'); bar.className = `admin-impact-bar trend-${key}`;
+      bar.style.height = `${value ? Math.max(8, value / peak * 92) : 2}%`;
+      bar.setAttribute('aria-label', `${key === 'created' ? 'ของหาย' : 'ของที่พบ'} ${value} รายการ`); bars.append(bar);
+    }
+    const date = document.createElement('small'); date.textContent = point.date.slice(5);
+    const values = document.createElement('span'); values.className = 'admin-impact-week-values'; values.textContent = `${point.lost}/${point.found}`;
+    column.append(bars, values, date); trend.append(column);
+  }
+  const renderBars = (targetId, rows, getCount, labelSuffix) => {
+    const target = byId(targetId); target.replaceChildren();
+    if (!rows.length) { const empty = document.createElement('p'); empty.className = 'admin-impact-empty'; empty.textContent = 'ยังไม่มีข้อมูลในช่วงเวลานี้'; target.append(empty); return; }
+    const max = Math.max(1, ...rows.map(getCount));
+    for (const row of rows.slice(0, 8)) {
+      const entry = document.createElement('div'); entry.className = 'admin-impact-category';
+      const heading = document.createElement('div'); heading.className = 'admin-impact-category-heading';
+      const name = document.createElement('strong'); name.textContent = row.name;
+      const count = getCount(row); const value = document.createElement('span'); value.textContent = `${count} ${labelSuffix}`;
+      const track = document.createElement('div'); track.className = 'admin-impact-category-track';
+      const fill = document.createElement('span'); fill.style.width = `${Math.round(count / max * 100)}%`; track.append(fill);
+      heading.append(name, value); entry.append(heading, track); target.append(entry);
+    }
+  };
+  renderBars('admin-stats-categories', data.categories || [], (row) => row.lost + row.found, 'ประกาศ');
+  renderBars('admin-stats-places', data.places || [], (row) => row.lost + row.found, 'ประกาศ');
+  const staleList = byId('admin-stats-stale-list'); staleList.replaceChildren();
+  if (!(data.backlog?.oldest || []).length) { const empty = document.createElement('p'); empty.className = 'admin-impact-empty'; empty.textContent = 'ไม่มีประกาศค้างเกิน 7 วัน'; staleList.append(empty); }
+  else for (const item of data.backlog.oldest) {
+    const row = document.createElement('div'); row.className = 'admin-stats-stale-row';
+    const title = document.createElement('strong'); title.textContent = item.itemName || 'ประกาศไม่มีชื่อ';
+    const detail = document.createElement('span'); detail.textContent = `${item.id} · ${item.placeName || 'ไม่ระบุสถานที่'} · ${item.ageDays} วัน`;
+    row.append(title, detail); staleList.append(row);
+  }
+}
+async function loadAdminStats() {
+  setMessage('admin-stats-message', '');
+  try {
+    const range = byId('admin-stats-range').value;
+    renderAdminStats(await api(`/api/admin/stats?range=${encodeURIComponent(range)}`));
+  } catch (error) { setMessage('admin-stats-message', error.message); }
 }
 async function deleteAdminUser(user) {
   const confirmed = window.confirm(
@@ -3322,9 +3389,10 @@ function bindEvents() {
   byId('signup-name').addEventListener('input', updateAdminSetupVisibility);
   byId('signup-id').addEventListener('input', updateAdminSetupVisibility);
   byId('admin-refresh').addEventListener('click', loadAdminData);
+  byId('admin-stats-range').addEventListener('change', loadAdminStats);
   byId('admin-panel').addEventListener('click', (event) => {
     const button = event.target.closest('[data-admin-view]');
-    if (button) setAdminView(button.dataset.adminView);
+    if (button) { setAdminView(button.dataset.adminView); if (button.dataset.adminView === 'stats') loadAdminStats(); }
   });
   byId('profile-school').addEventListener('change', renderProfileSchoolMap);
   byId('profile-form').addEventListener('submit', saveProfile);

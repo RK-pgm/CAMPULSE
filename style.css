@@ -5643,6 +5643,26 @@ html[data-theme="dark"] .admin-view-button b { background: rgba(255,255,255,.1);
 }
 @media (prefers-reduced-motion: reduce) { .portal-choice, .portal-choice-cta span { transition: none; } }
 
+/* Additive admin analytics view; existing admin dashboard layout remains intact. */
+.admin-analytics { scroll-margin-top: 24px; }
+.admin-analytics-range { display: grid; gap: 5px; min-width: 150px; color: var(--ink-muted); font-size: 12px; font-weight: 700; }
+.admin-analytics-range select { min-height: 40px; padding: 7px 30px 7px 11px; border: 1px solid #d6e4d6; border-radius: 11px; background: #fff; color: #294b3b; font: inherit; }
+.admin-stats-places { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 22px; padding-top: 14px; }
+.admin-stats-stale-list { display: grid; gap: 8px; padding-top: 12px; }
+.admin-stats-stale-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 13px; border: 1px solid #e0e9df; border-radius: 11px; background: rgba(255,255,255,.65); }
+.admin-stats-stale-row strong { color: #294b3b; }
+.admin-stats-stale-row span { color: #718176; font-size: 12px; text-align: right; }
+html[data-theme="dark"] .admin-analytics-range select { border-color: #405347; background: #1a271e; color: #e1eee3; }
+html[data-theme="dark"] .admin-stats-stale-row { border-color: #405347; background: rgba(26,39,30,.65); }
+html[data-theme="dark"] .admin-stats-stale-row strong { color: #e1eee3; }
+html[data-theme="dark"] .admin-stats-stale-row span { color: #b7c7ba; }
+@media (max-width: 700px) {
+  .admin-analytics-range { width: 100%; }
+  .admin-stats-places { grid-template-columns: 1fr; }
+  .admin-stats-stale-row { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .admin-stats-stale-row span { text-align: left; }
+}
+
 /* Compact mobile navigation: keep every existing action available behind a menu button. */
 .mobile-nav-toggle { display: none; }
 @media (max-width: 820px) {

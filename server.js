@@ -8,6 +8,7 @@ const { promisify } = require('node:util');
 const scrypt = promisify(crypto.scrypt);
 const { buildWorkOrderImpact } = require('./lib/work-order-impact');
 const { buildRestaurantList, saveRestaurantRating, normalizeRestaurantMenuInputs } = require('./lib/restaurant-service');
+const { buildAdminStats } = require('./lib/admin-stats');
 const ROOT = process.cwd();
 const DATA_DIR = process.env.DATA_DIR || (process.env.VERCEL ? path.join('/tmp', 'found-it', 'data') : path.join(ROOT, 'data'));
 const PHOTO_DIR = process.env.UPLOAD_DIR || (process.env.VERCEL ? path.join('/tmp', 'found-it', 'uploads') : path.join(ROOT, 'uploads'));
@@ -1084,6 +1085,15 @@ async function handler(req, res) {
         supportCount: store.staffMessages.length,
         impact,
       });
+    }
+    if (req.method === 'GET' && route === '/api/admin/stats') {
+      const admin = await requireAdmin(req, res);
+      if (!admin) return;
+      const store = await readStore();
+      const requestedSchool = String(url.searchParams.get('school') || 'all');
+      // School administrators may only see analytics for their own school.
+      const schoolId = admin.schoolId || requestedSchool;
+      return json(res, 200, buildAdminStats(store, url.searchParams.get('range') || '30', schoolId));
     }
     if (req.method === 'POST' && route === '/api/admin/items/update') {
       const admin = await requireAdmin(req, res);
