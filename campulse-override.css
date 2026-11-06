@@ -2123,3 +2123,26 @@ html[data-theme="dark"] .portal-activity .portal-workorders-link:hover { border-
   }
   html[data-theme="dark"] .friend-card-actions { border-top-color:#34545f !important; }
 }
+
+
+/* Force readable friend search text in dark mode, including Safari form controls. */
+html[data-theme="dark"] .messages-dialog-card #friends-search-input {
+  color:#f1f8fa !important;
+  -webkit-text-fill-color:#f1f8fa !important;
+  caret-color:#9de2ee !important;
+  background:#1a303b !important;
+  border:1px solid #365562 !important;
+  color-scheme:dark;
+  opacity:1 !important;
+  box-shadow:none !important;
+}
+html[data-theme="dark"] .messages-dialog-card #friends-search-input::placeholder {
+  color:#aec5cd !important;
+  -webkit-text-fill-color:#aec5cd !important;
+  opacity:1 !important;
+}
+html[data-theme="dark"] .messages-dialog-card #friends-search-input:focus {
+  border-color:#66c7dc !important;
+  outline:none !important;
+  box-shadow:0 0 0 3px rgba(102,199,220,.16) !important;
+}
