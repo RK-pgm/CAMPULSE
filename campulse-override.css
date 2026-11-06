@@ -2031,3 +2031,35 @@ html[data-theme="dark"] .messages-dialog-card > .eyebrow { color:#9edce7 !import
 html[data-theme="dark"] .messages-dialog-card > .subtext { color:#b4c9d0 !important; }
 .friends-search-bar #friends-search-btn,.friend-card-actions .button.primary { background-image:none !important; }
 html[data-theme="dark"] .friends-search-bar #friends-search-btn,html[data-theme="dark"] .friend-card-actions .button.primary { background-image:none !important; }
+
+
+/* Keep tracking and chat shortcuts together as matching service cards. */
+.portal-activity {
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:12px !important;
+  max-width:1320px !important;
+  margin:16px auto 0 !important;
+}
+.portal-activity .portal-workorders-link {
+  min-width:0;
+  min-height:64px;
+  border-color:#c8e0e8 !important;
+  background:#f9fcfd !important;
+  color:#16475c !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+}
+.portal-activity .portal-workorders-link > span:last-child { color:#197998 !important; }
+.portal-activity .portal-workorders-link:hover { border-color:#70b7cb !important; box-shadow:none !important; transform:none !important; }
+html[data-theme="dark"] .portal-activity .portal-workorders-link {
+  border-color:#355664 !important;
+  background:#172b36 !important;
+  color:#e4f3f6 !important;
+}
+html[data-theme="dark"] .portal-activity .portal-workorders-link > span:first-child { color:#e4f3f6 !important; }
+html[data-theme="dark"] .portal-activity .portal-workorders-link > span:last-child { color:#9edce7 !important; }
+html[data-theme="dark"] .portal-activity .portal-workorders-link:hover { border-color:#66a9bb !important; }
+@media (max-width: 700px) {
+  .portal-activity { grid-template-columns:minmax(0,1fr) !important; gap:10px !important; }
+}
