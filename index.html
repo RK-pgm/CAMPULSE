@@ -5,15 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#f3f6f2" />
     <meta name="application-name" content="CAMPULSE" />
-    <meta name="description" content="CAMPULSE ศูนย์รวมบริการและชุมชนในโรงเรียน ค้นหาของหาย แจ้งข้อเสนอแนะ ดูร้านอาหาร และติดตามบริการต่าง ๆ" />
+    <meta name="description" content="CAMPULSE ศูนย์รวมบริการและชุมชนในโรงเรียน ค้นหาของหาย แจ้งข้อเสนอแนะ ติดต่อแชท และดูคะแนนความน่าเชื่อถือของสมาชิก" />
     <title>CAMPULSE — ศูนย์รวมบริการและชุมชนในโรงเรียน</title>
     <script>
       try {
         if (localStorage.getItem('khonghai-theme') === 'dark') document.documentElement.dataset.theme = 'dark';
       } catch {}
     </script>
-    <link rel="stylesheet" href="style.css?v=campulse-brand-1" />
-    <script src="script.js?v=campulse-brand-1" defer></script>
+    <link rel="stylesheet" href="style.css?v=campulse-brand-4" />
+    <link rel="stylesheet" href="campulse-override.css?v=campulse-ui-5" />
+    <script src="script.js?v=campulse-brand-2" defer></script>
 </head>
 <body>
     <header class="topbar">
@@ -28,155 +29,290 @@
 
     <main>
       <section class="auth-screen" id="auth-screen" aria-labelledby="welcome-title">
-        <div class="auth-card">
-          <div class="eyebrow">ชุมชนโรงเรียน</div>
-          <div id="auth-choice" class="auth-view active">
-            <h1 id="welcome-title">ของหายก็มีโอกาสได้คืน<br /><span>เริ่มตามหาได้ที่นี่</span></h1>
-            <p class="subtext">ศูนย์ติดตามของหายในโรงเรียน ค้นหา แจ้ง และช่วยกันส่งคืนอย่างปลอดภัย</p>
-            <button class="button primary full" id="open-signup" type="button">
-              สร้างบัญชี
-            </button>
-            <button class="button full" id="open-login" type="button">เข้าสู่ระบบสมาชิก</button>
-            <p class="fine-print">สร้างบัญชีด้วยชื่อ รหัสนักเรียน และรหัสผ่าน</p>
-            <p class="admin-link-row"><button class="text-button admin-link" id="open-admin-login" type="button">สำหรับเจ้าหน้าที่: เข้าสู่ระบบผู้ดูแล</button></p>
-          </div>
-          <form id="signup-form" class="auth-view" novalidate>
-            <h1>สร้างบัญชี</h1>
-            <p class="subtext">เข้าร่วมชุมชนโรงเรียนและติดตามประกาศ</p>
-            <label for="signup-name">ชื่อ–นามสกุล</label>
-            <input
-              id="signup-name"
-              name="name"
-              type="text"
-              autocomplete="name"
-              maxlength="80"
-              required
-              placeholder="เช่น ด.ช. ธนกร ใจดี"
-            />
-            <label for="signup-id">รหัสนักเรียน</label>
-            <input
-              id="signup-id"
-              name="studentId"
-              type="text"
-              autocomplete="username"
-              maxlength="40"
-              required
-              placeholder="กรอกรหัสนักเรียน"
-            />
-            <p class="form-hint">รหัสนักเรียนทั่วไปใช้ตัวเลข 4–12 หลัก · ระบบตรวจรูปแบบเท่านั้น ยังยืนยันกับทะเบียนโรงเรียนไม่ได้</p>
-            <label for="signup-community">ชุมชนที่ต้องการเข้า <span class="required-mark">*</span></label>
-            <select id="signup-community" name="schoolId" required>
-              <option value="">เลือกโรงเรียนหรือสาธารณะก่อน</option>
-              <option value="public">สาธารณะ · ดูประกาศที่เปิดให้ทุกโรงเรียน</option>
-            </select>
-            <p class="form-hint auth-community-hint">ประกาศของโรงเรียนที่เลือกจะอยู่ในฟีดของชุมชนนั้น และเปลี่ยนได้ภายหลังที่โปรไฟล์</p>
-      <label for="signup-password">รหัสผ่าน</label>
-            <input
-              id="signup-password"
-              name="password"
-              type="password"
-              autocomplete="new-password"
-              minlength="10"
-              maxlength="128"
-              required
-              placeholder="อย่างน้อย 10 ตัว มีตัวพิมพ์เล็ก ใหญ่ และตัวเลข"
-            />
-            <p class="form-hint">ตั้งรหัสผ่านอย่างน้อย 10 ตัวอักษร มีตัวพิมพ์เล็ก ตัวพิมพ์ใหญ่ และตัวเลข</p>
-            <div id="admin-setup-field" class="admin-setup-field hidden">
-              <label for="admin-setup-code">รหัสตั้งค่าบัญชีผู้ดูแล</label>
-              <input
-                id="admin-setup-code"
-                name="adminSetupCode"
-                type="password"
-                autocomplete="one-time-code"
-                placeholder="กรอกรหัสที่แสดงในหน้าต่างเซิร์ฟเวอร์"
-              />
-              <p class="form-hint">กรอกเฉพาะเมื่อตั้งค่าบัญชีผู้ดูแลครั้งแรก</p>
-  </div>
-            <p class="form-message" id="signup-message" aria-live="polite"></p>
-            <button class="button primary full" type="submit">สมัครสมาชิก</button>
-            <p class="switch-copy">
-              มีบัญชีอยู่แล้ว?
-              <button class="text-button" id="to-login" type="button">เข้าสู่ระบบ</button>
-            </p>
-          </form>
-          <form id="login-form" class="auth-view" novalidate>
-            <h1 id="login-title">ยินดีต้อนรับกลับ</h1>
-            <p class="subtext" id="login-intro">เข้าสู่ระบบเพื่อดูและติดตามประกาศของโรงเรียน</p>
-        <label for="login-id">รหัสนักเรียน / รหัสผู้ดูแล</label>
-            <input
-              id="login-id"
-              name="studentId"
-              type="text"
-              autocomplete="username"
-              required
-              placeholder="เช่น รหัสนักเรียน หรือ A1010"
-            />
-            <div id="login-community-field" class="auth-login-community hidden">
-              <label for="login-community">ขอบเขตโรงเรียนของผู้ดูแล <span class="required-mark">*</span></label>
-              <select id="login-community" name="schoolId" required>
-                <option value="">เลือกโรงเรียนหรือสาธารณะก่อน</option>
-                <option value="public">สาธารณะ · ทุกโรงเรียน</option>
-              </select>
-              <p class="form-hint">ตัวเลือกนี้ใช้เฉพาะบัญชีผู้ดูแล เพื่อกำหนดขอบเขตแผงควบคุม</p>
+        <div class="auth-layout">
+          <aside class="auth-showcase" aria-label="ตัวอย่างการใช้งานระบบ">
+            <div class="auth-brand-block">
+              <div class="auth-brand-logo">🏫</div>
+              <h2 class="auth-brand-name">CAMPULSE</h2>
+              <p class="auth-brand-tagline">ศูนย์รวมบริการและชุมชนในโรงเรียน</p>
             </div>
-            <label for="login-password">รหัสผ่าน</label>
-            <input
-              id="login-password"
-              name="password"
-              type="password"
-              autocomplete="current-password"
-              required
-            />
-            <p class="form-message" id="login-message" aria-live="polite"></p>
-            <button class="button primary full" type="submit">เข้าสู่ระบบ</button>
-            <p class="form-hint login-recovery-hint">ลืมรหัสผ่าน? ติดต่อผู้ดูแลโรงเรียนเพื่อยืนยันตัวตนก่อนรีเซ็ต บัญชีนี้ยังไม่มีอีเมลหรือเบอร์โทรที่ยืนยันไว้สำหรับกู้คืนอัตโนมัติ</p>
-            <p class="switch-copy">
-              ยังไม่มีบัญชี?
-              <button class="text-button" id="to-signup" type="button">สร้างบัญชี</button>
-            </p>
-    </form>
-
-  </div>
-      <aside class="auth-showcase" aria-label="ตัวอย่างการใช้งานระบบ">
-        <h2>ใช้งานใน 3 ขั้นตอน</h2>
-        <ol class="showcase-steps">
-          <li><strong>แจ้งหรือค้นหา</strong><span>ลงประกาศของหายหรือของที่พบ พร้อมรูปและจุดบนแผนผังโรงเรียน</span></li>
-          <li><strong>ดูรายการที่อาจตรงกัน</strong><span>ระบบเทียบชื่อ สี สถานที่ และรูปภาพให้</span></li>
-          <li><strong>รับคืนด้วย QR</strong><span>ยืนยันหลังส่งมอบจริง ผู้ที่เก็บของมาคืนได้แต้มพลเมืองดี</span></li>
-        </ol>
-        <h2>ประกาศหน้าตาแบบนี้</h2>
-        <ul class="showcase-samples">
-          <li class="sample sample-lost"><span class="sample-status">ตามหา</span><strong>กระเป๋าดินสอสีฟ้า</strong><span class="sample-meta">ห้องสมุด · เมื่อวาน</span></li>
-          <li class="sample sample-found"><span class="sample-status">มีผู้เก็บได้</span><strong>ขวดน้ำสแตนเลสสีเทา</strong><span class="sample-meta">โรงอาหาร · วันนี้ · รับคืนได้ที่ห้องประชาสัมพันธ์</span></li>
-          <li class="sample sample-done"><span class="sample-status">คืนแล้ว</span><strong>สมุดบันทึกฟิสิกส์</strong><span class="sample-meta">ห้องเรียน · ยืนยันการรับคืน</span></li>
-        </ul>
-        <p class="showcase-note">ตัวอย่างสำหรับแสดงหน้าตา ไม่ใช่ประกาศจริง</p>
-      </aside>
-</section>
+            <h3>ใช้งานใน 3 ขั้นตอน</h3>
+            <ol class="showcase-steps">
+              <li>
+                <div class="step-text">
+                  <strong>แจ้งหรือค้นหา</strong>
+                  <span>ลงประกาศของหายหรือของที่พบ พร้อมรูปและจุดบนแผนผังโรงเรียน</span>
+                </div>
+              </li>
+              <li>
+                <div class="step-text">
+                  <strong>ดูรายการที่อาจตรงกัน</strong>
+                  <span>ระบบเทียบชื่อ สี สถานที่ และรูปภาพให้</span>
+                </div>
+              </li>
+              <li>
+                <div class="step-text">
+                  <strong>รับคืนด้วย QR</strong>
+                  <span>ยืนยันหลังส่งมอบจริง ผู้ที่เก็บของมาคืนได้แต้มพลเมืองดี</span>
+                </div>
+              </li>
+            </ol>
+            <ul class="showcase-samples">
+              <li class="sample sample-lost"><span class="sample-status">ตามหา</span><strong>กระเป๋าดินสอสีฟ้า</strong><span class="sample-meta">ห้องสมุด · เมื่อวาน</span></li>
+              <li class="sample sample-found"><span class="sample-status">มีผู้เก็บได้</span><strong>ขวดน้ำสแตนเลสสีเทา</strong><span class="sample-meta">โรงอาหาร · วันนี้</span></li>
+              <li class="sample sample-done"><span class="sample-status">คืนแล้ว</span><strong>สมุดบันทึกฟิสิกส์</strong><span class="sample-meta">ห้องเรียน · ยืนยันการรับคืน</span></li>
+            </ul>
+            <p class="showcase-note">ตัวอย่างสำหรับแสดงหน้าตา ไม่ใช่ประกาศจริง</p>
+          </aside>
+          <div class="auth-card">
+            <div class="eyebrow">ชุมชนโรงเรียน</div>
+            <div id="auth-choice" class="auth-view active">
+              <h1 id="welcome-title">ของหายก็มีโอกาสได้คืน<br /><span>เริ่มตามหาได้ที่นี่</span></h1>
+              <p class="subtext">ศูนย์ติดตามของหายในโรงเรียน ค้นหา แจ้ง และช่วยกันส่งคืนอย่างปลอดภัย</p>
+              <button class="button primary full" id="open-signup" type="button">
+                สร้างบัญชี
+              </button>
+              <button class="button full" id="open-login" type="button">เข้าสู่ระบบสมาชิก</button>
+              <p class="fine-print">สร้างบัญชีด้วยชื่อ รหัสนักเรียน และรหัสผ่าน</p>
+              <p class="admin-link-row"><button class="text-button admin-link" id="open-admin-login" type="button">สำหรับเจ้าหน้าที่: เข้าสู่ระบบผู้ดูแล</button></p>
+            </div>
+            <form id="signup-form" class="auth-view" novalidate>
+              <h1>สร้างบัญชี</h1>
+              <p class="subtext">เข้าร่วมชุมชนโรงเรียนและติดตามประกาศ</p>
+              <label for="signup-name">ชื่อ–นามสกุล</label>
+              <input
+                id="signup-name"
+                name="name"
+                type="text"
+                autocomplete="name"
+                maxlength="80"
+                required
+                placeholder="เช่น ด.ช. ธนกร ใจดี"
+              />
+              <label for="signup-id">รหัสนักเรียน</label>
+              <input
+                id="signup-id"
+                name="studentId"
+                type="text"
+                autocomplete="username"
+                maxlength="40"
+                required
+                placeholder="กรอกรหัสนักเรียน"
+              />
+              <p class="form-hint">รหัสนักเรียนทั่วไปใช้ตัวเลข 4–12 หลัก · ระบบตรวจรูปแบบเท่านั้น ยังยืนยันกับทะเบียนโรงเรียนไม่ได้</p>
+              <label for="signup-community">ชุมชนที่ต้องการเข้า <span class="required-mark">*</span></label>
+              <select id="signup-community" name="schoolId" required>
+                <option value="">เลือกโรงเรียนหรือสาธารณะก่อน</option>
+                <option value="public">สาธารณะ · ดูประกาศที่เปิดให้ทุกโรงเรียน</option>
+              </select>
+              <p class="form-hint auth-community-hint">ประกาศของโรงเรียนที่เลือกจะอยู่ในฟีดของชุมชนนั้น และเปลี่ยนได้ภายหลังที่โปรไฟล์</p>
+              <label for="signup-password">รหัสผ่าน</label>
+              <input
+                id="signup-password"
+                name="password"
+                type="password"
+                autocomplete="new-password"
+                minlength="10"
+                maxlength="128"
+                required
+                placeholder="อย่างน้อย 10 ตัว มีตัวพิมพ์เล็ก ใหญ่ และตัวเลข"
+              />
+              <p class="form-hint">ตั้งรหัสผ่านอย่างน้อย 10 ตัวอักษร มีตัวพิมพ์เล็ก ตัวพิมพ์ใหญ่ และตัวเลข</p>
+              <div id="admin-setup-field" class="admin-setup-field hidden">
+                <label for="admin-setup-code">รหัสตั้งค่าบัญชีผู้ดูแล</label>
+                <input
+                  id="admin-setup-code"
+                  name="adminSetupCode"
+                  type="password"
+                  autocomplete="one-time-code"
+                  placeholder="กรอกรหัสที่แสดงในหน้าต่างเซิร์ฟเวอร์"
+                />
+                <p class="form-hint">กรอกเฉพาะเมื่อตั้งค่าบัญชีผู้ดูแลครั้งแรก</p>
+              </div>
+              <div class="profile-upload-row">
+                <label class="profile-avatar-label" for="signup-avatar-input">
+                  <span class="profile-avatar-preview" id="signup-avatar-preview">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 20a7 7 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                  </span>
+                  <span class="profile-avatar-text">
+                    <strong>เพิ่มรูปโปรไฟล์</strong>
+                    <small>ไม่บังคับ · JPG, PNG ไม่เกิน 2MB</small>
+                  </span>
+                </label>
+                <input id="signup-avatar-input" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+              </div>
+              <label for="signup-province">จังหวัด <small class="optional-mark">(ไม่บังคับ)</small></label>
+              <select id="signup-province" name="province">
+                <option value="">เลือกจังหวัด (ไม่บังคับ)</option>
+                <option>กรุงเทพมหานคร</option>
+                <option>กระบี่</option>
+                <option>กาญจนบุรี</option>
+                <option>กาฬสินธุ์</option>
+                <option>กำแพงเพชร</option>
+                <option>ขอนแก่น</option>
+                <option>จันทบุรี</option>
+                <option>ฉะเชิงเทรา</option>
+                <option>ชลบุรี</option>
+                <option>ชัยนาท</option>
+                <option>ชัยภูมิ</option>
+                <option>ชุมพร</option>
+                <option>เชียงราย</option>
+                <option>เชียงใหม่</option>
+                <option>ตรัง</option>
+                <option>ตราด</option>
+                <option>ตาก</option>
+                <option>นครนายก</option>
+                <option>นครปฐม</option>
+                <option>นครพนม</option>
+                <option>นครราชสีมา</option>
+                <option>นครศรีธรรมราช</option>
+                <option>นครสวรรค์</option>
+                <option>นนทบุรี</option>
+                <option>นราธิวาส</option>
+                <option>น่าน</option>
+                <option>บึงกาฬ</option>
+                <option>บุรีรัมย์</option>
+                <option>ปทุมธานี</option>
+                <option>ประจวบคีรีขันธ์</option>
+                <option>ปราจีนบุรี</option>
+                <option>ปัตตานี</option>
+                <option>พระนครศรีอยุธยา</option>
+                <option>พะเยา</option>
+                <option>พังงา</option>
+                <option>พัทลุง</option>
+                <option>พิจิตร</option>
+                <option>พิษณุโลก</option>
+                <option>เพชรบุรี</option>
+                <option>เพชรบูรณ์</option>
+                <option>แพร่</option>
+                <option>ภูเก็ต</option>
+                <option>มหาสารคาม</option>
+                <option>มุกดาหาร</option>
+                <option>แม่ฮ่องสอน</option>
+                <option>ยโสธร</option>
+                <option>ยะลา</option>
+                <option>ร้อยเอ็ด</option>
+                <option>ระนอง</option>
+                <option>ระยอง</option>
+                <option>ราชบุรี</option>
+                <option>ลพบุรี</option>
+                <option>ลำปาง</option>
+                <option>ลำพูน</option>
+                <option>เลย</option>
+                <option>ศรีสะเกษ</option>
+                <option>สกลนคร</option>
+                <option>สงขลา</option>
+                <option>สตูล</option>
+                <option>สมุทรปราการ</option>
+                <option>สมุทรสงคราม</option>
+                <option>สมุทรสาคร</option>
+                <option>สระแก้ว</option>
+                <option>สระบุรี</option>
+                <option>สิงห์บุรี</option>
+                <option>สุโขทัย</option>
+                <option>สุพรรณบุรี</option>
+                <option>สุราษฎร์ธานี</option>
+                <option>สุรินทร์</option>
+                <option>หนองคาย</option>
+                <option>หนองบัวลำภู</option>
+                <option>อ่างทอง</option>
+                <option>อำนาจเจริญ</option>
+                <option>อุดรธานี</option>
+                <option>อุตรดิตถ์</option>
+                <option>อุทัยธานี</option>
+                <option>อุบลราชธานี</option>
+              </select>
+              <label for="signup-school-name">ชื่อโรงเรียน <small class="optional-mark">(ไม่บังคับ)</small></label>
+              <input
+                id="signup-school-name"
+                name="schoolName"
+                type="text"
+                maxlength="120"
+                placeholder="เช่น โรงเรียนทุ่งสง หรือโรงเรียนอื่นๆ"
+              />
+              <p class="form-hint">กรอกชื่อโรงเรียนเพื่อเพิ่มข้อมูลที่โปรไฟล์ของคุณ</p>
+              <label for="signup-grade">ชั้นเรียน <small class="optional-mark">(ไม่บังคับ)</small></label>
+              <input
+                id="signup-grade"
+                name="grade"
+                type="text"
+                maxlength="40"
+                placeholder="เช่น ม.4/2 หรือ ป.6"
+              />
+              <p class="form-message" id="signup-message" aria-live="polite"></p>
+              <button class="button primary full" type="submit">สมัครสมาชิก</button>
+              <p class="switch-copy">
+                มีบัญชีอยู่แล้ว?
+                <button class="text-button" id="to-login" type="button">เข้าสู่ระบบ</button>
+              </p>
+            </form>
+            <form id="login-form" class="auth-view" novalidate>
+              <h1 id="login-title">ยินดีต้อนรับกลับ</h1>
+              <p class="subtext" id="login-intro">เข้าสู่ระบบเพื่อดูและติดตามประกาศของโรงเรียน</p>
+              <label for="login-id">รหัสนักเรียน / รหัสผู้ดูแล</label>
+              <input
+                id="login-id"
+                name="studentId"
+                type="text"
+                autocomplete="username"
+                required
+                placeholder="เช่น รหัสนักเรียน หรือ A1010"
+              />
+              <div id="login-community-field" class="auth-login-community hidden">
+                <label for="login-community">ขอบเขตโรงเรียนของผู้ดูแล <span class="required-mark">*</span></label>
+                <select id="login-community" name="schoolId" required>
+                  <option value="">เลือกโรงเรียนหรือสาธารณะก่อน</option>
+                  <option value="public">สาธารณะ · ทุกโรงเรียน</option>
+                </select>
+                <p class="form-hint">ตัวเลือกนี้ใช้เฉพาะบัญชีผู้ดูแล เพื่อกำหนดขอบเขตแผงควบคุม</p>
+              </div>
+              <label for="login-password">รหัสผ่าน</label>
+              <input
+                id="login-password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                required
+              />
+              <p class="form-message" id="login-message" aria-live="polite"></p>
+              <button class="button primary full" type="submit">เข้าสู่ระบบ</button>
+              <p class="form-hint login-recovery-hint">ลืมรหัสผ่าน? ติดต่อผู้ดูแลโรงเรียนเพื่อยืนยันตัวตนก่อนรีเซ็ต บัญชีนี้ยังไม่มีอีเมลหรือเบอร์โทรที่ยืนยันไว้สำหรับกู้คืนอัตโนมัติ</p>
+              <p class="switch-copy">
+                ยังไม่มีบัญชี?
+                <button class="text-button" id="to-signup" type="button">สร้างบัญชี</button>
+              </p>
+            </form>
+          </div>
+        </div>
+      </section>
         <div id="app" class="hidden">
           <section id="portal-home" class="portal-home" aria-labelledby="portal-title">
-            <div class="portal-intro"><div class="eyebrow">ศูนย์บริการชุมชนโรงเรียน</div><h1 id="portal-title">สวัสดี <span id="portal-welcome-name">สมาชิก</span></h1><p id="portal-school-name">เลือกสิ่งที่ต้องการทำ แล้วเริ่มได้เลย</p></div>
+            <div class="portal-intro">
+              <div class="eyebrow">ศูนย์บริการชุมชนโรงเรียน</div>
+              <h1 id="portal-title">สวัสดี <span id="portal-welcome-name">สมาชิก</span> 👋</h1>
+              <p id="portal-school-name" style="font-size:16px;color:#64748b;margin:8px 0 0;font-weight:500;">เลือกสิ่งที่ต้องการทำ แล้วเริ่มได้เลย</p>
+            </div>
             <div class="portal-choices" role="group" aria-label="เลือกบริการ">
               <button class="portal-choice portal-choice-search" id="portal-open-board" type="button">
                 <span class="portal-choice-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="10.8" cy="10.8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15.5 15.5 4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 10.8h5.6M10.8 8v5.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
                 <span class="portal-choice-copy"><span class="portal-choice-kicker">ของหายและของที่พบ</span><strong>ค้นหาของหาย</strong><span>ดูประกาศของที่พบ ค้นหาด้วยชื่อ รูปภาพ หรือสถานที่ และแจ้งของที่เก็บได้</span></span>
                 <span class="portal-choice-cta">ไปหน้าค้นหา <span aria-hidden="true">→</span></span>
               </button>
+              <button class="portal-choice portal-choice-chat" id="portal-open-chat" type="button">
+                <span class="portal-choice-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span class="portal-choice-copy"><span class="portal-choice-kicker">ชุมชนและการสื่อสาร</span><strong>แชทและเพื่อน</strong><span>ติดต่อสอบถามรายละเอียดสิ่งของ พูดคุยกับเพื่อน และแอดเพื่อนร่วมโรงเรียน</span></span>
+                <span class="portal-choice-cta">เปิดกล่องแชท <span aria-hidden="true">→</span></span>
+              </button>
               <button class="portal-choice portal-choice-report" id="portal-open-issue" type="button">
                 <span class="portal-choice-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 3 21 19H3L12 3Zm0 6v4m0 3h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
                 <span class="portal-choice-copy"><span class="portal-choice-kicker">แจ้งให้โรงเรียนช่วยดูแล</span><strong>แจ้งข้อเสนอแนะ</strong><span>แจ้งอาคารหรืออุปกรณ์ชำรุด ความสะอาด หรือปัญหาความปลอดภัย พร้อมติดตามจนแก้ไข</span></span>
                 <span class="portal-choice-cta">แจ้งเรื่องใหม่ <span aria-hidden="true">→</span></span>
               </button>
-              <button class="portal-choice portal-choice-food" id="portal-open-restaurants" type="button">
-                <span class="portal-choice-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4 3v7m3-7v7M5.5 3v18M16 3c-2 2-3 5-3 8h4v10M17 3v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                <span class="portal-choice-copy"><span class="portal-choice-kicker">ร้านค้าในโรงเรียน</span><strong>ร้านอาหาร</strong><span>ดูร้าน เมนู ราคา และคะแนนรีวิวจากสมาชิกในโรงเรียน</span></span>
-                <span class="portal-choice-cta">เลือกร้านอาหาร <span aria-hidden="true">→</span></span>
-              </button>
             </div>
             <div class="portal-activity" aria-label="ความเคลื่อนไหวของบัญชี">
               <button id="portal-notifications-open" class="portal-notification-summary hidden" type="button"><span aria-hidden="true">🔔</span><span id="portal-notifications-text">มีการแจ้งเตือนใหม่</span><span aria-hidden="true">ดูแจ้งเตือน →</span></button>
               <button id="portal-open-workorders" class="portal-workorders-link" type="button"><span>ติดตามเรื่องที่ฉันแจ้ง</span><span>ดูสถานะงานที่ส่งให้โรงเรียน →</span></button>
+              <button id="portal-open-restaurants" class="portal-workorders-link" type="button"><span>🍽️ ร้านอาหารในโรงเรียน</span><span>ดูเมนู ราคา และคะแนนร้านค้า →</span></button>
             </div>
             <p class="portal-private-note"><span aria-hidden="true">✓</span> ติดตามประกาศและเรื่องที่แจ้งได้จากบัญชีของคุณ</p>
           </section>
@@ -301,6 +437,86 @@
             <div class="filter-row" role="group" aria-label="ตัวกรองประกาศ">
               <span class="filter-row-title">เลือกดูให้ตรงขึ้น</span>
               <div class="filter-controls">
+                <label class="filter-field"><span>จังหวัด</span><select id="province-filter" aria-label="กรองตามจังหวัด">
+                  <option value="">ทุกจังหวัด</option>
+                  <option>กรุงเทพมหานคร</option>
+                  <option>กระบี่</option>
+                  <option>กาญจนบุรี</option>
+                  <option>กาฬสินธุ์</option>
+                  <option>กำแพงเพชร</option>
+                  <option>ขอนแก่น</option>
+                  <option>จันทบุรี</option>
+                  <option>ฉะเชิงเทรา</option>
+                  <option>ชลบุรี</option>
+                  <option>ชัยนาท</option>
+                  <option>ชัยภูมิ</option>
+                  <option>ชุมพร</option>
+                  <option>เชียงราย</option>
+                  <option>เชียงใหม่</option>
+                  <option>ตรัง</option>
+                  <option>ตราด</option>
+                  <option>ตาก</option>
+                  <option>นครนายก</option>
+                  <option>นครปฐม</option>
+                  <option>นครพนม</option>
+                  <option>นครราชสีมา</option>
+                  <option>นครศรีธรรมราช</option>
+                  <option>นครสวรรค์</option>
+                  <option>นนทบุรี</option>
+                  <option>นราธิวาส</option>
+                  <option>น่าน</option>
+                  <option>บึงกาฬ</option>
+                  <option>บุรีรัมย์</option>
+                  <option>ปทุมธานี</option>
+                  <option>ประจวบคีรีขันธ์</option>
+                  <option>ปราจีนบุรี</option>
+                  <option>ปัตตานี</option>
+                  <option>พระนครศรีอยุธยา</option>
+                  <option>พะเยา</option>
+                  <option>พังงา</option>
+                  <option>พัทลุง</option>
+                  <option>พิจิตร</option>
+                  <option>พิษณุโลก</option>
+                  <option>เพชรบุรี</option>
+                  <option>เพชรบูรณ์</option>
+                  <option>แพร่</option>
+                  <option>ภูเก็ต</option>
+                  <option>มหาสารคาม</option>
+                  <option>มุกดาหาร</option>
+                  <option>แม่ฮ่องสอน</option>
+                  <option>ยโสธร</option>
+                  <option>ยะลา</option>
+                  <option>ร้อยเอ็ด</option>
+                  <option>ระนอง</option>
+                  <option>ระยอง</option>
+                  <option>ราชบุรี</option>
+                  <option>ลพบุรี</option>
+                  <option>ลำปาง</option>
+                  <option>ลำพูน</option>
+                  <option>เลย</option>
+                  <option>ศรีสะเกษ</option>
+                  <option>สกลนคร</option>
+                  <option>สงขลา</option>
+                  <option>สตูล</option>
+                  <option>สมุทรปราการ</option>
+                  <option>สมุทรสงคราม</option>
+                  <option>สมุทรสาคร</option>
+                  <option>สระแก้ว</option>
+                  <option>สระบุรี</option>
+                  <option>สิงห์บุรี</option>
+                  <option>สุโขทัย</option>
+                  <option>สุพรรณบุรี</option>
+                  <option>สุราษฎร์ธานี</option>
+                  <option>สุรินทร์</option>
+                  <option>หนองคาย</option>
+                  <option>หนองบัวลำภู</option>
+                  <option>อ่างทอง</option>
+                  <option>อำนาจเจริญ</option>
+                  <option>อุดรธานี</option>
+                  <option>อุตรดิตถ์</option>
+                  <option>อุทัยธานี</option>
+                  <option>อุบลราชธานี</option>
+                </select></label>
                 <label class="filter-field"><span>หมวดหมู่</span><select id="category-filter" aria-label="กรองตามหมวดหมู่">
               <option value="">ทุกหมวดหมู่</option>
               <option value="School supplies">อุปกรณ์การเรียน</option>
@@ -702,10 +918,29 @@
         <p class="item-meta" id="detail-meta"></p>
         <div id="detail-photo-gallery" class="detail-photo-gallery hidden" aria-label="ภาพประกอบประกาศ"></div>
         <p id="detail-description" class="detail-description"></p>
+        <div class="detail-owner-card" id="detail-owner-card">
+          <div class="owner-card-avatar" id="detail-owner-avatar">👤</div>
+          <div class="owner-card-body">
+            <div class="owner-card-top">
+              <span class="owner-card-label">ผู้ลงประกาศ:</span>
+              <button class="text-button owner-card-name" id="detail-owner-name-btn" type="button">สมาชิก</button>
+              <span class="owner-trust-badge" id="detail-owner-badge">🌟 สมาชิกคนดี</span>
+            </div>
+            <div class="owner-card-meta">
+              <span class="owner-stars" id="detail-owner-stars">★★★★★ 5.0</span>
+              <span class="owner-school" id="detail-owner-school">โรงเรียน</span>
+            </div>
+          </div>
+          <div class="owner-card-actions">
+            <button class="button small" id="detail-owner-friend-btn" type="button">➕ เพิ่มเพื่อน</button>
+            <button class="button small secondary" id="detail-owner-profile-btn" type="button">👤 ดูโปรไฟล์</button>
+            <button class="button small primary" id="detail-owner-chat-btn" type="button">💬 แชทถามรายละเอียด</button>
+          </div>
+        </div>
         <div id="detail-facts" class="detail-facts"></div>
         <section class="item-timeline" aria-labelledby="item-timeline-title"><div class="detail-comments-heading"><div><h3 id="item-timeline-title">เส้นทางการติดตาม</h3><p class="form-hint">บันทึกความคืบหน้าของประกาศตั้งแต่แจ้งจนถึงการส่งคืน</p></div></div><ol id="item-timeline-list" class="item-timeline-list"></ol></section>
         <div class="detail-owner-actions"><button class="button primary hidden" id="resolve-item" type="button"></button><button class="button hidden" id="return-qr-button" type="button">สร้าง QR ยืนยันรับคืน</button><button class="button danger-button hidden" id="delete-item" type="button">ลบประกาศนี้</button></div>
-        <div class="detail-owner-actions"><button class="button hidden" id="edit-item" type="button">แก้ไขประกาศ</button><button class="button hidden" id="claim-item" type="button">ขอรับของคืน</button><button class="button small" id="report-item" type="button">รายงานประกาศ</button></div>
+        <div class="detail-owner-actions"><button class="button primary hidden" id="chat-item-owner" type="button">💬 แชทถามรายละเอียดเจ้าของ</button><button class="button hidden" id="edit-item" type="button">แก้ไขประกาศ</button><button class="button hidden" id="claim-item" type="button">ขอรับของคืน</button><button class="button small" id="report-item" type="button">รายงานประกาศ</button></div>
         <section id="claim-section" class="detail-comments hidden"><h3>คำขอรับของคืน</h3><form id="claim-form" class="comment-form"><label for="claim-proof">ยืนยันความเป็นเจ้าของ</label><textarea id="claim-proof" rows="3" maxlength="1000" required placeholder="บอกรายละเอียดเฉพาะที่ช่วยยืนยันว่าเป็นของคุณ"></textarea><p id="claim-status" class="form-message" aria-live="polite"></p><button class="button primary" type="submit">ส่งคำขอ</button></form><div id="claim-list" class="message-list"></div></section>
         <section class="detail-matches" id="detail-match-section" aria-labelledby="matches-heading">
           <div class="detail-comments-heading"><div><h3 id="matches-heading">ประกาศที่อาจเป็นชิ้นเดียวกัน</h3><p id="detail-match-note" class="form-hint hidden">คะแนนเป็นค่าความคล้ายจากภาพ ชื่อ หมวดหมู่ สถานที่ และรายละเอียด ไม่ใช่การยืนยันว่าเป็นชิ้นเดียวกัน</p></div></div>
@@ -761,6 +996,18 @@
         <div class="eyebrow">บัญชีของฉัน</div>
         <h2 id="profile-title">โปรไฟล์นักเรียน</h2>
         <p class="subtext">ข้อมูลนี้ช่วยให้ติดต่อและส่งคืนของได้ถูกคน</p>
+        <div class="profile-upload-row">
+          <label class="profile-avatar-label" for="profile-avatar-input">
+            <span class="profile-avatar-preview" id="profile-avatar-preview">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 20a7 7 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </span>
+            <span class="profile-avatar-text">
+              <strong>เปลี่ยนรูปโปรไฟล์</strong>
+              <small>แตะเพื่อเลือกรูปใหม่ (JPG, PNG ไม่เกิน 2MB)</small>
+            </span>
+          </label>
+          <input id="profile-avatar-input" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+        </div>
         <label for="profile-name">ชื่อ–นามสกุล</label>
         <input id="profile-name" name="name" required minlength="2" maxlength="80" />
         <label for="profile-student-id">เลขประจำตัวนักเรียน</label>
@@ -864,7 +1111,7 @@
       </form>
     </dialog>
     <dialog class="dialog" id="messages-dialog" aria-labelledby="messages-title">
-      <section class="dialog-card">
+      <section class="dialog-card messages-dialog-card">
         <button
           class="icon-button dialog-close"
           id="close-messages"
@@ -873,12 +1120,259 @@
         >
           ×
         </button>
-        <div class="eyebrow">กล่องข้อความของฉัน</div>
-        <h2 id="messages-title">ข้อความ</h2>
-        <p class="subtext">ข้อความส่วนตัวและความคิดเห็นที่มีคนส่งถึงคุณจะแสดงที่นี่</p>
-        <div id="message-list" class="message-list"></div>
-        <p id="messages-empty" class="empty-message hidden">ยังไม่มีข้อความ</p>
+        <div class="eyebrow">ศูนย์การติดต่อ CAMPULSE</div>
+        <h2 id="messages-title">แชทและข้อความ</h2>
+        <p class="subtext">ติดต่อสอบถาม พูดคุยกับเพื่อน และติดตามเรื่องราวในโรงเรียน</p>
+
+        <div class="messages-dialog-tabs" role="tablist">
+          <button class="tab active" id="tab-conversations-btn" type="button" data-message-tab="conversations">💬 แชทส่วนตัว</button>
+          <button class="tab" id="tab-friends-btn" type="button" data-message-tab="friends">👥 เพื่อนของฉัน</button>
+          <button class="tab" id="tab-inbox-btn" type="button" data-message-tab="inbox">📨 ประกาศ/ความคิดเห็น</button>
+        </div>
+
+        <div class="messages-tab-panel" id="panel-conversations">
+          <div id="conversation-list" class="conversation-list"></div>
+          <p id="conversations-empty" class="empty-message hidden">ยังไม่มีบทสนทนา เริ่มคุยโดยกดปุ่มแชทในประกาศหรือโปรไฟล์ของเพื่อนได้เลย!</p>
+        </div>
+
+        <div class="messages-tab-panel hidden" id="panel-friends">
+          <!-- Friends Header & Interactive Search -->
+          <div class="friends-management-header">
+            <div class="friends-search-bar">
+              <span class="friends-search-icon" aria-hidden="true">🔍</span>
+              <input
+                id="friends-search-input"
+                type="text"
+                autocomplete="off"
+                placeholder="ค้นหาเพื่อนด้วยชื่อ หรือรหัสนักเรียน..."
+                aria-label="ค้นหาเพื่อน"
+              />
+              <button class="button small primary" id="friends-search-btn" type="button">ค้นหา</button>
+            </div>
+            <div class="friends-subtabs" role="tablist">
+              <button class="friends-subtab is-active" id="subtab-my-friends" type="button">
+                เพื่อนของฉัน (<span id="friends-count-num">0</span>)
+              </button>
+              <button class="friends-subtab" id="subtab-find-friends" type="button">
+                ➕ ค้นหาและเพิ่มเพื่อนใหม่
+              </button>
+            </div>
+          </div>
+
+          <!-- My Friends Subpanel -->
+          <div id="subpanel-my-friends" class="friends-subpanel">
+            <div id="friends-list" class="friends-list"></div>
+            <p id="friends-empty" class="empty-message hidden">
+              คุณยังไม่มีเพื่อนในระบบ แตะ "➕ ค้นหาและเพิ่มเพื่อนใหม่" ด้านบนเพื่อค้นหาเพื่อนร่วมโรงเรียนได้เลย!
+            </p>
+          </div>
+
+          <!-- Find / Suggested Friends Subpanel -->
+          <div id="subpanel-find-friends" class="friends-subpanel hidden">
+            <div class="friends-suggest-banner" id="friends-suggest-banner">
+              <strong>✨ ค้นหาเพื่อนร่วมโรงเรียน / แนะนำสมาชิก</strong>
+              <small>ค้นพบและเชื่อมต่อกับเพื่อนๆ เพื่อความสะดวกในการติดต่อและส่งคืนของ</small>
+            </div>
+            <div id="friends-search-results" class="friends-list"></div>
+            <p id="friends-search-empty" class="empty-message hidden">ไม่พบสมาชิกที่ตรงกับการค้นหา ลองพิมพ์ชื่อหรือรหัสนักเรียนอื่นดูนะ</p>
+          </div>
+        </div>
+
+        <div class="messages-tab-panel hidden" id="panel-inbox">
+          <div id="message-list" class="message-list"></div>
+          <p id="messages-empty" class="empty-message hidden">ยังไม่มีข้อความ</p>
+        </div>
       </section>
+    </dialog>
+
+    <!-- Direct Chat Dialog -->
+    <dialog class="dialog chat-dialog" id="chat-dialog" aria-labelledby="chat-dialog-title">
+      <section class="dialog-card chat-dialog-card">
+        <header class="chat-header">
+          <div class="chat-header-user" id="chat-header-user">
+            <div class="chat-target-avatar" id="chat-target-avatar">👤</div>
+            <div class="chat-target-info">
+              <div class="chat-target-name-row">
+                <h2 id="chat-dialog-title" class="chat-target-name">คู่สนทนา</h2>
+                <span class="chat-target-badge" id="chat-target-badge">🌟 สมาชิกคนดี</span>
+                <span class="chat-live-status-pill" id="chat-live-status-pill" title="เชื่อมต่อการสนทนาแบบเรียลไทม์">
+                  <span class="chat-status-dot"></span>
+                  <span id="chat-status-text">เรียลไทม์</span>
+                </span>
+              </div>
+              <div class="chat-target-subtext">
+                <span class="chat-stars" id="chat-target-stars">★★★★★ 5.0</span>
+                <span class="chat-school-tag" id="chat-target-school">โรงเรียน</span>
+              </div>
+            </div>
+          </div>
+          <div class="chat-header-actions">
+            <button class="button small" id="chat-header-friend-btn" type="button" title="เพิ่มเพื่อน">➕ เพิ่มเพื่อน</button>
+            <button class="button small" id="chat-view-profile-btn" type="button" title="ดูโปรไฟล์">👤 โปรไฟล์</button>
+            <button class="button small secondary" id="chat-rate-user-btn" type="button" title="ให้ดาวและรีวิว">⭐ ให้ดาว</button>
+            <button class="icon-button dialog-close" id="close-chat" type="button" aria-label="ปิดหน้าต่างแชท">×</button>
+          </div>
+        </header>
+
+        <!-- Inquiring item context bar -->
+        <div class="chat-item-context hidden" id="chat-item-context">
+          <span class="chat-context-icon" aria-hidden="true">📌</span>
+          <div class="chat-context-info">
+            <span class="chat-context-kicker">สอบถามเกี่ยวกับประกาศ:</span>
+            <strong id="chat-context-title">สิ่งของ</strong>
+            <small id="chat-context-location">📍 สถานที่</small>
+          </div>
+          <button class="button small" id="chat-context-open-item" type="button">ดูโพสต์</button>
+        </div>
+
+        <!-- Message thread feed -->
+        <div class="chat-message-feed" id="chat-message-feed" aria-live="polite"></div>
+
+        <!-- Typing indicator bubble -->
+        <div class="chat-typing-row hidden" id="chat-typing-indicator" aria-live="polite">
+          <div class="typing-bubble">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <small id="chat-typing-label">กำลังพิมพ์...</small>
+          </div>
+        </div>
+
+        <!-- Quick suggestion pills (Grab style) -->
+        <div class="chat-quick-suggestions" id="chat-quick-suggestions">
+          <button class="quick-pill" type="button" data-text="ของชิ้นนี้ยังอยู่ไหมครับ?">ของชิ้นนี้ยังอยู่ไหมครับ?</button>
+          <button class="quick-pill" type="button" data-text="นัดรับที่จุดไหนของโรงเรียนสะดวกครับ?">นัดรับที่ไหนสะดวก?</button>
+          <button class="quick-pill" type="button" data-text="ขอดูรูปภาพเพิ่มเติมหน่อยได้ไหมครับ">ขอดูรูปเพิ่มเติม</button>
+          <button class="quick-pill" type="button" data-text="ขอบคุณมากครับ!">ขอบคุณมากครับ! 🙏</button>
+        </div>
+
+        <!-- Chat input form -->
+        <form class="chat-input-bar" id="chat-input-form">
+          <input id="chat-input-text" type="text" autocomplete="off" maxlength="1000" placeholder="พิมพ์ข้อความที่นี่... (กด Enter เพื่อส่ง)" required />
+          <button class="button primary chat-send-btn" id="chat-send-btn" type="submit" aria-label="ส่งข้อความ">
+            <span>ส่ง</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" width="18" height="18"><path d="m2 21 21-9L2 3v7l15 2-15 2v7Z" fill="currentColor"/></svg>
+          </button>
+        </form>
+      </section>
+    </dialog>
+
+    <!-- Public User Profile Dialog -->
+    <dialog class="dialog user-profile-dialog" id="user-profile-dialog" aria-labelledby="user-profile-name">
+      <section class="dialog-card profile-card-lux">
+        <button class="icon-button dialog-close" id="close-user-profile" type="button" aria-label="ปิด">×</button>
+        <div class="user-profile-hero">
+          <div class="user-profile-avatar-wrap">
+            <div class="user-profile-avatar" id="user-profile-avatar">👤</div>
+          </div>
+          <div class="user-profile-titles">
+            <div class="user-profile-name-row">
+              <h2 id="user-profile-name">ชื่อสมาชิก</h2>
+              <span class="badge" id="user-profile-role-badge">นักเรียน</span>
+            </div>
+            <p class="user-profile-school-info" id="user-profile-school-info">🏫 โรงเรียน · จังหวัด</p>
+            <div class="user-profile-trust-pill" id="user-profile-trust-pill">
+              <span class="trust-icon" id="user-profile-trust-icon">🌟</span>
+              <strong id="user-profile-trust-title">สมาชิกคนดีมีน้ำใจ</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions: Add Friend, Chat, Rate -->
+        <div class="user-profile-actions">
+          <button class="button primary" id="user-profile-chat-btn" type="button">💬 ส่งข้อความแชท</button>
+          <button class="button" id="user-profile-friend-btn" type="button">➕ เพิ่มเพื่อน</button>
+          <button class="button secondary" id="user-profile-review-btn" type="button">⭐ ให้ดาว / รีวิว</button>
+        </div>
+
+        <!-- Reputation & Rating Summary (Grab style) -->
+        <div class="user-reputation-card">
+          <div class="reputation-score-box">
+            <span class="big-score" id="user-reputation-score">5.0</span>
+            <div class="star-rating-display" id="user-reputation-stars">★★★★★</div>
+            <small class="review-count" id="user-reputation-count">จาก 0 รีวิว</small>
+          </div>
+          <div class="reputation-highlights">
+            <div class="highlight-item positive">
+              <span class="highlight-num" id="user-reputation-positive">0</span>
+              <span>คำชื่นชม / คนดีมีน้ำใจ</span>
+            </div>
+            <div class="highlight-item warnings" id="user-reputation-warnings-box">
+              <span class="highlight-num" id="user-reputation-warnings">0</span>
+              <span>รายงานมิจฉาชีพ/ระวัง</span>
+            </div>
+            <div class="highlight-item points">
+              <span class="highlight-num" id="user-reputation-points">0</span>
+              <span>แต้มส่งคืนของจริง</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reputation Tags Cloud (Grab style) -->
+        <div class="reputation-tags-section" id="user-reputation-tags-section">
+          <span class="tags-title">แท็กความน่าเชื่อถือที่เพื่อนๆ มอบให้:</span>
+          <div class="reputation-tags-cloud" id="user-reputation-tags-cloud"></div>
+        </div>
+
+        <!-- Sub tabs: Reviews vs Items -->
+        <div class="profile-sub-tabs" role="tablist">
+          <button class="tab active" id="user-tab-reviews" type="button" role="tab">รีวิวและประเมิน (<span id="user-tab-reviews-count">0</span>)</button>
+          <button class="tab" id="user-tab-items" type="button" role="tab">ประกาศของสมาชิก (<span id="user-tab-items-count">0</span>)</button>
+        </div>
+
+        <div class="profile-panel" id="user-reviews-panel">
+          <div class="review-list" id="user-profile-review-list"></div>
+          <p class="empty-message hidden" id="user-reviews-empty">ยังไม่มีรีวิวสำหรับสมาชิกท่านนี้ มาร่วมเป็นคนแรกที่ประเมิน!</p>
+        </div>
+
+        <div class="profile-panel hidden" id="user-items-panel">
+          <div class="item-grid" id="user-profile-item-list"></div>
+          <p class="empty-message hidden" id="user-items-empty">สมาชิกท่านนี้ยังไม่มีประกาศ</p>
+        </div>
+      </section>
+    </dialog>
+
+    <!-- Rating & Review Dialog (Grab Style) -->
+    <dialog class="dialog review-dialog" id="review-dialog" aria-labelledby="review-dialog-title">
+      <form class="dialog-card review-dialog-card" id="review-form">
+        <button class="icon-button dialog-close" id="close-review" type="button" aria-label="ปิด">×</button>
+        <div class="eyebrow">ระบบประเมินความน่าเชื่อถือ</div>
+        <h2 id="review-dialog-title">ให้ดาวและรีวิวสมาชิก</h2>
+        <p class="subtext" id="review-target-name-desc">ช่วยกันดูแลชุมชนโรงเรียน ให้ดาวและบอกเพื่อนๆ ว่าคนนี้เป็นคนดี ส่งของจริง หรือควรระวัง</p>
+
+        <div class="star-rating-selector" id="star-rating-selector" aria-label="เลือกจำนวนดาว">
+          <button type="button" class="star-btn" data-star="1" title="1 ดาว — ควรระวัง">★</button>
+          <button type="button" class="star-btn" data-star="2" title="2 ดาว — ไม่ค่อยน่าเชื่อถือ">★</button>
+          <button type="button" class="star-btn" data-star="3" title="3 ดาว — ทั่วไป/พอใช้">★</button>
+          <button type="button" class="star-btn" data-star="4" title="4 ดาว — สมาชิกที่ดี">★</button>
+          <button type="button" class="star-btn active" data-star="5" title="5 ดาว — สมาชิกคนดี ยอดเยี่ยม">★</button>
+        </div>
+        <div class="star-caption" id="star-caption">5 ดาว — สมาชิกยอดเยี่ยม ซื่อสัตย์และมีน้ำใจมาก</div>
+
+        <label>เลือกแท็กแสดงความเห็น (เลือกได้หลายข้อ ฟีลแกรป):</label>
+        <div class="review-tag-chips" id="review-tag-chips">
+          <button type="button" class="tag-chip positive" data-tag="🌟 คนดีมีน้ำใจ">🌟 คนดีมีน้ำใจ</button>
+          <button type="button" class="tag-chip positive" data-tag="✅ ส่งคืนของจริง">✅ ส่งคืนของจริง</button>
+          <button type="button" class="tag-chip positive" data-tag="⚡ ตอบแชทไว">⚡ ตอบแชทไว</button>
+          <button type="button" class="tag-chip positive" data-tag="🤝 ซื่อสัตย์ไว้ใจได้">🤝 ซื่อสัตย์ไว้ใจได้</button>
+          <button type="button" class="tag-chip positive" data-tag="📍 ตรงต่อเวลา">📍 ตรงต่อเวลา</button>
+          <button type="button" class="tag-chip negative" data-tag="⚠️ โกง / มิจฉาชีพ">⚠️ โกง / มิจฉาชีพ</button>
+          <button type="button" class="tag-chip negative" data-tag="❌ ไม่ส่งของจริง">❌ ไม่ส่งของจริง</button>
+          <button type="button" class="tag-chip negative" data-tag="🚩 พฤติกรรมน่าสงสัย">🚩 พฤติกรรมน่าสงสัย</button>
+          <button type="button" class="tag-chip negative" data-tag="🚫 ขอเงินโอนล่วงหน้า">🚫 ขอเงินโอนล่วงหน้า</button>
+        </div>
+
+        <label for="review-comment-input">ความคิดเห็นเพิ่มเติม</label>
+        <textarea id="review-comment-input" rows="3" maxlength="500" placeholder="อธิบายประสบการณ์ของคุณ เช่น ส่งมอบของเรียบร้อย สุภาพ หรือพฤติกรรมที่ควรระวัง..."></textarea>
+        <p class="form-hint">รีวิวของคุณจะช่วยสร้างความปลอดภัย และป้องกันมิจฉาชีพในโรงเรียน</p>
+
+        <p class="form-message" id="review-form-status" aria-live="polite"></p>
+
+        <div class="dialog-actions">
+          <button class="button" id="cancel-review" type="button">ยกเลิก</button>
+          <button class="button primary" type="submit">ส่งการประเมิน</button>
+        </div>
+      </form>
     </dialog>
     <dialog class="dialog" id="help-dialog" aria-labelledby="help-title">
       <section class="dialog-card">
@@ -914,6 +1408,7 @@
     </dialog>
     <dialog class="dialog" id="saved-searches-dialog" aria-labelledby="saved-searches-title"><section class="dialog-card"><button class="icon-button dialog-close" id="close-saved-searches" type="button" aria-label="ปิด">×</button><div class="eyebrow">การค้นหาของฉัน</div><h2 id="saved-searches-title">คำค้นหาที่บันทึก</h2><p class="subtext">รายการใหม่ที่ตรงกับตัวกรองเหล่านี้จะแจ้งเตือนให้คุณ</p><div id="saved-searches-list" class="message-list"></div><p id="saved-searches-empty" class="empty-message hidden">ยังไม่มีคำค้นหาที่บันทึก</p></section></dialog>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="realtime-toast-container" id="realtime-toast-container" aria-live="polite"></div>
 </body>
 </html>
 

@@ -10,6 +10,7 @@ const { buildWorkOrderImpact } = require('./lib/work-order-impact');
 const { buildRestaurantList, saveRestaurantRating, normalizeRestaurantMenuInputs } = require('./lib/restaurant-service');
 const { buildAdminStats } = require('./lib/admin-stats');
 const { isValidStudentId, isStrongPassword } = require('./lib/account-validation');
+const { computeUserReputation } = require('./lib/user-reputation');
 const ROOT = process.cwd();
 const DATA_DIR = process.env.DATA_DIR || (process.env.VERCEL ? path.join('/tmp', 'found-it', 'data') : path.join(ROOT, 'data'));
 const PHOTO_DIR = process.env.UPLOAD_DIR || (process.env.VERCEL ? path.join('/tmp', 'found-it', 'uploads') : path.join(ROOT, 'uploads'));
@@ -92,6 +93,21 @@ const SCHOOLS = [
   },
 ];
 let localStoreWriteQueue = Promise.resolve();
+const realtimeClients = new Map(); // userId -> Set<ServerResponse>
+
+function broadcastRealtime(userId, eventName, data) {
+  if (!userId) return;
+  const clients = realtimeClients.get(String(userId));
+  if (!clients || clients.size === 0) return;
+  const payload = `event: ${eventName}\ndata: ${JSON.stringify(data)}\n\n`;
+  for (const client of Array.from(clients)) {
+    try {
+      client.write(payload);
+    } catch {
+      clients.delete(client);
+    }
+  }
+}
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -120,11 +136,11 @@ function assertDeploymentConfig() {
   }
 }
 function emptyStore() {
-  return { users: [], items: [], messages: [], staffMessages: [], comments: [], notifications: [], claims: [], itemReports: [], savedSearches: [], pointLedger: [], workOrders: [], restaurants: [], restaurantRatings: [] };
+  return { users: [], items: [], messages: [], staffMessages: [], comments: [], notifications: [], claims: [], itemReports: [], savedSearches: [], pointLedger: [], workOrders: [], restaurants: [], restaurantRatings: [], friends: [], userReviews: [] };
 }
 function normalizeStore(value) {
   const store = { ...emptyStore(), ...(value && typeof value === 'object' ? value : {}) };
-  for (const key of ['users', 'items', 'messages', 'staffMessages', 'comments', 'notifications', 'claims', 'itemReports', 'savedSearches', 'pointLedger', 'workOrders', 'restaurants', 'restaurantRatings']) {
+  for (const key of ['users', 'items', 'messages', 'staffMessages', 'comments', 'notifications', 'claims', 'itemReports', 'savedSearches', 'pointLedger', 'workOrders', 'restaurants', 'restaurantRatings', 'friends', 'userReviews']) {
     if (!Array.isArray(store[key])) store[key] = [];
   }
   const schoolForUser = (user) => SCHOOLS.find((school) => school.id === user?.schoolId) || SCHOOLS.find((school) => school.name === user?.school);
@@ -390,7 +406,11 @@ function cleanUser(user) {
     grade: user.grade || '',
     school: user.school || '',
     schoolId: user.schoolId || SCHOOLS.find((school) => school.name === user.school)?.id || '',
+    province: user.province || '',
+    customSchoolName: user.customSchoolName || '',
+    avatar: user.avatar || '',
     role: user.role || 'student',
+    createdAt: user.createdAt || '',
   };
 }
 function canViewItem(user, item) {
@@ -689,6 +709,43 @@ async function handler(req, res) {
         ? json(res, 200, { user: cleanUser(user) })
         : json(res, 401, { error: 'กรุณาเข้าสู่ระบบก่อนใช้งาน' });
     }
+    if (req.method === 'GET' && route === '/api/realtime/stream') {
+      const user = await getUser(req);
+      if (!user) return json(res, 401, { error: 'กรุณาเข้าสู่ระบบก่อนใช้งาน' });
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Cache-Control': 'no-cache, no-transform',
+        'Connection': 'keep-alive',
+        'X-Accel-Buffering': 'no',
+        'Access-Control-Allow-Origin': req.headers.origin || '*',
+        'Access-Control-Allow-Credentials': 'true',
+      });
+      const uid = String(user.id);
+      if (!realtimeClients.has(uid)) {
+        realtimeClients.set(uid, new Set());
+      }
+      realtimeClients.get(uid).add(res);
+
+      res.write(`event: connected\ndata: ${JSON.stringify({ ok: true, userId: uid })}\n\n`);
+
+      const heartbeat = setInterval(() => {
+        try {
+          res.write(': heartbeat\n\n');
+        } catch {
+          clearInterval(heartbeat);
+        }
+      }, 20000);
+
+      req.on('close', () => {
+        clearInterval(heartbeat);
+        const set = realtimeClients.get(uid);
+        if (set) {
+          set.delete(res);
+          if (set.size === 0) realtimeClients.delete(uid);
+        }
+      });
+      return;
+    }
     if (req.method === 'GET' && route === '/api/community-points') {
       const user = await requireUser(req, res);
       if (!user) return;
@@ -738,6 +795,12 @@ async function handler(req, res) {
       account.grade = grade;
       account.schoolId = selectedSchool?.id || '';
       account.school = selectedSchool?.name || '';
+      if (typeof body.province === 'string') account.province = body.province.trim();
+      if (typeof body.schoolName === 'string') account.customSchoolName = body.schoolName.trim();
+      if (typeof body.customSchoolName === 'string') account.customSchoolName = body.customSchoolName.trim();
+      if (typeof body.avatar === 'string' && (body.avatar === '' || body.avatar.startsWith('data:image/'))) {
+        account.avatar = body.avatar;
+      }
       store.items.forEach((item) => {
         if (item.ownerId === user.id) { item.ownerName = name; item.reporterName = name; }
       });
@@ -829,6 +892,10 @@ async function handler(req, res) {
         passwordHash: hash.toString('hex'),
         schoolId: selectedSchool?.id || '',
         school: selectedSchool?.name || '',
+        province: String(body.province || '').trim(),
+        customSchoolName: String(body.schoolName || body.customSchoolName || '').trim(),
+        grade: String(body.grade || '').trim(),
+        avatar: typeof body.avatar === 'string' && body.avatar.startsWith('data:image/') ? body.avatar : '',
         createdAt: new Date().toISOString(),
       };
       latestStore.users.push(user);
@@ -1966,29 +2033,260 @@ async function handler(req, res) {
       const user = await requireUser(req, res);
       if (!user) return;
       const body = await readBody(req);
-      const item = (await readStore()).items.find((x) => x.id === body.itemId);
-      const message = String(body.message || '').trim();
-      if (!item || !canViewItem(user, item)) return json(res, 404, { error: 'ไม่พบประกาศนี้' });
-      if (item.status === 'resolved' || isExpiredItem(item))
-        return json(res, 409, { error: 'ประกาศนี้ปิดแล้วและไม่รับข้อความใหม่' });
-      if (item.ownerId === user.id)
-        return json(res, 400, { error: 'ไม่สามารถส่งข้อความถึงประกาศของตนเองได้' });
-      if (message.length < 5 || message.length > 1000)
-        return json(res, 400, { error: 'ข้อความต้องมีความยาว 5–1,000 ตัวอักษร' });
       const store = await readStore();
+      const item = body.itemId ? store.items.find((x) => x.id === body.itemId) : null;
+      let recipientId = String(body.toId || '').trim();
+      if (!recipientId && item) recipientId = item.ownerId;
+      if (!recipientId) return json(res, 400, { error: 'กรุณาระบุผู้รับข้อความ' });
+      if (recipientId === user.id)
+        return json(res, 400, { error: 'ไม่สามารถส่งข้อความถึงตนเองได้' });
+      if (item && !canViewItem(user, item)) return json(res, 404, { error: 'ไม่พบประกาศนี้' });
+      if (item && (item.status === 'resolved' || isExpiredItem(item)))
+        return json(res, 409, { error: 'ประกาศนี้ปิดแล้วและไม่รับข้อความใหม่' });
+      const message = String(body.message || '').trim();
+      if (message.length < 1 || message.length > 1000)
+        return json(res, 400, { error: 'ข้อความต้องมีความยาว 1–1,000 ตัวอักษร' });
       const entry = {
         id: crypto.randomUUID(),
-        itemId: item.id,
-        itemName: item.itemName,
+        itemId: item?.id || body.itemId || null,
+        itemName: item?.itemName || body.itemName || null,
         fromId: user.id,
         fromName: user.name,
-        toId: item.ownerId,
+        fromAvatar: user.avatar || '',
+        toId: recipientId,
         message,
         createdAt: new Date().toISOString(),
       };
       store.messages.push(entry);
       await writeStore(store);
-      return json(res, 201, { ok: true });
+      broadcastRealtime(recipientId, 'chat_message', { message: entry });
+      broadcastRealtime(user.id, 'chat_message', { message: entry });
+      return json(res, 201, { ok: true, message: entry });
+    }
+    if (req.method === 'POST' && route === '/api/messages/typing') {
+      const user = await requireUser(req, res);
+      if (!user) return;
+      const body = await readBody(req);
+      const toId = String(body.toId || '').trim();
+      if (!toId) return json(res, 400, { error: 'กรุณาระบุผู้รับ' });
+      broadcastRealtime(toId, 'typing', {
+        fromId: user.id,
+        fromName: user.name,
+        isTyping: Boolean(body.isTyping),
+      });
+      return json(res, 200, { ok: true });
+    }
+    if (req.method === 'GET' && route === '/api/users/search') {
+      const user = await requireUser(req, res);
+      if (!user) return;
+      const q = String(url.searchParams.get('q') || '').trim().toLowerCase();
+      const schoolId = String(url.searchParams.get('schoolId') || user.schoolId || '').trim();
+      const store = await readStore();
+      const friends = store.friends || [];
+
+      let matched = store.users.filter((u) => u.id !== user.id);
+      if (!q) {
+        matched = matched.filter((u) => u.role !== 'admin');
+        if (schoolId) {
+          matched = matched.filter((u) => u.schoolId === schoolId || u.school === user.school);
+        }
+      } else {
+        matched = matched.filter((u) => {
+          const name = (u.name || '').toLowerCase();
+          const studentId = (u.studentId || '').toLowerCase();
+          const grade = (u.grade || '').toLowerCase();
+          const school = (u.school || '').toLowerCase();
+          return name.includes(q) || studentId.includes(q) || grade.includes(q) || school.includes(q);
+        });
+      }
+
+      const results = matched.slice(0, 30).map((u) => ({
+        ...cleanUser(u),
+        reputation: computeUserReputation(u.id, store),
+        isFriend: friends.some((f) => f.userId === user.id && f.friendId === u.id),
+      }));
+
+      return json(res, 200, { users: results });
+    }
+    if (req.method === 'GET' && route === '/api/messages/thread') {
+      const user = await requireUser(req, res);
+      if (!user) return;
+      const withUserId = String(url.searchParams.get('userId') || url.searchParams.get('withUserId') || '').trim();
+      const itemId = String(url.searchParams.get('itemId') || '').trim();
+      if (!withUserId) return json(res, 400, { error: 'กรุณาระบุคู่สนทนา' });
+      const store = await readStore();
+      const targetUser = store.users.find((u) => u.id === withUserId);
+      if (!targetUser) return json(res, 404, { error: 'ไม่พบคู่สนทนา' });
+      const messages = store.messages
+        .filter((m) => (m.fromId === user.id && m.toId === withUserId) || (m.fromId === withUserId && m.toId === user.id))
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+      const item = itemId ? store.items.find((x) => x.id === itemId) : null;
+      const reputation = computeUserReputation(targetUser.id, store);
+      const isFriend = (store.friends || []).some((f) => f.userId === user.id && f.friendId === targetUser.id);
+      return json(res, 200, {
+        messages,
+        targetUser: cleanUser(targetUser),
+        targetReputation: reputation,
+        isFriend,
+        item: item ? { id: item.id, itemName: item.itemName, type: item.type, location: item.location, photos: item.photos, photo: item.photo, status: item.status } : null,
+      });
+    }
+    if (req.method === 'GET' && route === '/api/messages/conversations') {
+      const user = await requireUser(req, res);
+      if (!user) return;
+      const store = await readStore();
+      const map = new Map();
+      const userMsgs = store.messages
+        .filter((m) => m.fromId === user.id || m.toId === user.id)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      for (const msg of userMsgs) {
+        const partnerId = msg.fromId === user.id ? msg.toId : msg.fromId;
+        if (!map.has(partnerId)) {
+          const partner = store.users.find((u) => u.id === partnerId);
+          if (partner) {
+            map.set(partnerId, {
+              partner: cleanUser(partner),
+              reputation: computeUserReputation(partner.id, store),
+              lastMessage: msg.message,
+              lastAt: msg.createdAt,
+              itemId: msg.itemId || null,
+              itemName: msg.itemName || null,
+            });
+          }
+        }
+      }
+      return json(res, 200, { conversations: Array.from(map.values()) });
+    }
+    if (req.method === 'GET' && route === '/api/users/profile') {
+      const user = await requireUser(req, res);
+      if (!user) return;
+      const targetId = String(url.searchParams.get('userId') || url.searchParams.get('id') || '').trim();
+      if (!targetId) return json(res, 400, { error: 'กรุณาระบุรหัสผู้ใช้' });
+      const store = await readStore();
+      const targetUser = store.users.find((u) => u.id === targetId);
+      if (!targetUser) return json(res, 404, { error: 'ไม่พบผู้ใช้นี้' });
+      const isFriend = (store.friends || []).some((f) => f.userId === user.id && f.friendId === targetUser.id);
+      const reputation = computeUserReputation(targetUser.id, store);
+      const userItems = visibleItemsFor(user, store.items.filter((item) => item.ownerId === targetUser.id));
+      const reviews = (store.userReviews || [])
+        .filter((r) => r.targetUserId === targetUser.id)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      return json(res, 200, {
+        user: cleanUser(targetUser),
+        isFriend,
+        reputation,
+        items: userItems,
+        reviews,
+      });
+    }
+    if (req.method === 'GET' && route === '/api/friends') {
+      const user = await requireUser(req, res);
+      if (!user) return;
+      const store = await readStore();
+      const friendLinks = (store.friends || []).filter((f) => f.userId === user.id);
+      const friends = friendLinks
+        .map((link) => {
+          const friendUser = store.users.find((u) => u.id === link.friendId);
+          if (!friendUser) return null;
+          return {
+            ...cleanUser(friendUser),
+            reputation: computeUserReputation(friendUser.id, store),
+            friendSince: link.createdAt,
+            isFriend: true,
+          };
+        })
+        .filter(Boolean);
+      return json(res, 200, { friends });
+    }
+    if (req.method === 'POST' && route === '/api/friends/add') {
+      const user = await requireUser(req, res);
+      if (!user) return;
+      const body = await readBody(req);
+      const friendId = String(body.friendId || '').trim();
+      if (!friendId || friendId === user.id) return json(res, 400, { error: 'ไม่สามารถเพิ่มตนเองเป็นเพื่อนได้' });
+      const store = await readStore();
+      const targetUser = store.users.find((u) => u.id === friendId);
+      if (!targetUser) return json(res, 404, { error: 'ไม่พบผู้ใช้นี้' });
+      if (!Array.isArray(store.friends)) store.friends = [];
+      const exists = store.friends.some((f) => f.userId === user.id && f.friendId === friendId);
+      if (!exists) {
+        const now = new Date().toISOString();
+        store.friends.push({ id: crypto.randomUUID(), userId: user.id, friendId, createdAt: now });
+        store.friends.push({ id: crypto.randomUUID(), userId: friendId, friendId: user.id, createdAt: now });
+        await writeStore(store);
+        broadcastRealtime(friendId, 'friend_added', { fromUser: cleanUser(user) });
+        broadcastRealtime(user.id, 'friend_added', { fromUser: cleanUser(targetUser) });
+      }
+      return json(res, 200, { ok: true, isFriend: true });
+    }
+    if (req.method === 'POST' && route === '/api/friends/remove') {
+      const user = await requireUser(req, res);
+      if (!user) return;
+      const body = await readBody(req);
+      const friendId = String(body.friendId || '').trim();
+      if (!friendId) return json(res, 400, { error: 'กรุณาระบุเพื่อนที่ต้องการยกเลิก' });
+      const store = await readStore();
+      store.friends = (store.friends || []).filter(
+        (f) => !((f.userId === user.id && f.friendId === friendId) || (f.userId === friendId && f.friendId === user.id))
+      );
+      await writeStore(store);
+      broadcastRealtime(friendId, 'friend_removed', { friendId: user.id });
+      broadcastRealtime(user.id, 'friend_removed', { friendId });
+      return json(res, 200, { ok: true, isFriend: false });
+    }
+    if (req.method === 'GET' && route === '/api/user-reviews') {
+      const user = await requireUser(req, res);
+      if (!user) return;
+      const targetUserId = String(url.searchParams.get('userId') || url.searchParams.get('targetUserId') || '').trim();
+      if (!targetUserId) return json(res, 400, { error: 'กรุณาระบุรหัสผู้ใช้ที่ต้องการดูรีวิว' });
+      const store = await readStore();
+      const reviews = (store.userReviews || [])
+        .filter((r) => r.targetUserId === targetUserId)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      const reputation = computeUserReputation(targetUserId, store);
+      return json(res, 200, { reviews, reputation });
+    }
+    if (req.method === 'POST' && route === '/api/user-reviews') {
+      const user = await requireUser(req, res);
+      if (!user) return;
+      const body = await readBody(req);
+      const targetUserId = String(body.targetUserId || '').trim();
+      if (!targetUserId || targetUserId === user.id)
+        return json(res, 400, { error: 'ไม่สามารถประเมินตนเองได้' });
+      const store = await readStore();
+      const targetUser = store.users.find((u) => u.id === targetUserId);
+      if (!targetUser) return json(res, 404, { error: 'ไม่พบผู้ใช้ที่ต้องการประเมิน' });
+
+      const rating = Math.max(1, Math.min(5, Number(body.rating) || 5));
+      const tags = Array.isArray(body.tags) ? body.tags.map((t) => String(t).slice(0, 50)).filter(Boolean) : [];
+      const comment = String(body.comment || '').trim().slice(0, 500);
+
+      if (!Array.isArray(store.userReviews)) store.userReviews = [];
+      const existingIndex = store.userReviews.findIndex(
+        (r) => r.authorId === user.id && r.targetUserId === targetUserId
+      );
+
+      const reviewEntry = {
+        id: existingIndex >= 0 ? store.userReviews[existingIndex].id : crypto.randomUUID(),
+        targetUserId,
+        authorId: user.id,
+        authorName: user.name,
+        authorAvatar: user.avatar || '',
+        rating,
+        tags,
+        comment,
+        createdAt: new Date().toISOString(),
+      };
+
+      if (existingIndex >= 0) {
+        store.userReviews[existingIndex] = reviewEntry;
+      } else {
+        store.userReviews.push(reviewEntry);
+      }
+
+      await writeStore(store);
+      const reputation = computeUserReputation(targetUserId, store);
+      return json(res, 200, { ok: true, review: reviewEntry, reputation });
     }
     if (req.method === 'POST' && route === '/api/messages/reply') {
       const user = await requireUser(req, res);
@@ -2019,7 +2317,9 @@ async function handler(req, res) {
       };
       store.messages.push(reply);
       await writeStore(store);
-      return json(res, 201, { ok: true });
+      broadcastRealtime(recipientId, 'chat_message', { message: reply });
+      broadcastRealtime(user.id, 'chat_message', { message: reply });
+      return json(res, 201, { ok: true, message: reply });
     }
     if (req.method === 'GET' && route === '/api/messages') {
       const user = await requireUser(req, res);
@@ -2100,7 +2400,7 @@ async function handler(req, res) {
       return sendFile(res, path.join(PHOTO_DIR, filename));
     }
     if (req.method === 'GET' && route === '/') return sendFile(res, path.join(ROOT, 'index.html'));
-    if (req.method === 'GET' && ['/index.html', '/style.css', '/script.js', '/thung-song-campus-map.png', '/hamster-hub-campus-map.svg'].includes(route))
+    if (req.method === 'GET' && ['/index.html', '/style.css', '/campulse-override.css', '/script.js', '/thung-song-campus-map.png', '/hamster-hub-campus-map.svg'].includes(route))
       return sendFile(res, path.join(ROOT, route.slice(1)));
     return json(res, 404, { error: 'ไม่พบข้อมูลที่ต้องการ' });
   } catch (error) {
@@ -2114,7 +2414,10 @@ async function handler(req, res) {
     await releaseStoreLock(lockToken);
   }
 }
-if (process.env.VERCEL) {
+handler.broadcastRealtime = broadcastRealtime;
+handler.realtimeClients = realtimeClients;
+
+if (process.env.VERCEL || process.env.NODE_ENV === 'test' || require.main !== module) {
   module.exports = handler;
 } else {
   const HOST = process.env.HOST || (process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1');
