@@ -1716,3 +1716,217 @@ html[data-theme="dark"] .chat-friend-gate strong { color:#e3f3f7; }
 html[data-theme="dark"] .chat-friend-gate p,html[data-theme="dark"] .conversation-time { color:#a4c1cd; }
 html[data-theme="dark"] .conversation-search { background:#162b37; border-color:#304b58; }
 html[data-theme="dark"] .conversation-search input { color:#eaf5f8; }
+
+
+/* Balanced friend and profile components */
+:root {
+  --emerald-900: #123f55;
+  --emerald-800: #165875;
+  --emerald-700: #18769a;
+  --emerald-600: #1889aa;
+  --emerald-500: #219fba;
+  --emerald-400: #60bfd2;
+  --emerald-100: #d8f0f5;
+  --emerald-50: #eff8fb;
+  --border-focus: #248eae;
+}
+:root[data-theme="dark"] {
+  --emerald-900: #b3e5ef;
+  --emerald-800: #9bd9e6;
+  --emerald-700: #82cbdc;
+  --emerald-600: #6dc0d2;
+  --emerald-500: #55adc4;
+  --emerald-400: #3a95b0;
+  --emerald-100: #203944;
+  --emerald-50: #1b313c;
+  --border-focus: #66c7dc;
+}
+
+/* Give the profile header enough room for the name, member badge, and close control. */
+.dialog:not(#item-dialog) .dialog-card { border-color: #d7e8ee; }
+.dialog:not(#item-dialog) .dialog-card::before { background: #2395b4; height: 3px; }
+.profile-card-lux { border-color: #cfe4eb; border-radius: 22px; }
+.user-profile-hero { align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+.user-profile-avatar { width: 68px; height: 68px; border: 2px solid #218eae; background: #e1f2f6; box-shadow: none; }
+.user-profile-titles { min-width: 0; padding-right: 48px; }
+.user-profile-name-row { align-items: center; flex-wrap: wrap; gap: 6px 9px; }
+.user-profile-name-row h2 { min-width: 0; font-size: clamp(18px, 3.5vw, 22px); line-height: 1.25; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.user-profile-name-row .badge { flex: 0 0 auto; border-color: #b9dce5; background: #e6f4f7; color: #176b88; }
+.user-profile-school-info { margin-top: 6px; line-height: 1.45; }
+.user-profile-trust-pill { max-width: 100%; padding: 5px 10px; border-color: #badce5; background: #eaf6f9; color: #176b88; }
+.user-profile-trust-pill.verified { background: #eaf6f9; border-color: #badce5; color: #176b88; }
+.user-profile-actions { gap: 8px; margin-bottom: 18px; }
+.user-profile-actions .button { min-width: 0; min-height: 40px; padding: 8px 10px; border-radius: 10px; border-color: #c5dfe7; }
+.profile-card-lux .user-profile-actions .button.primary { border-color: #187c9d; }
+
+/* A discovery list should use the full modal width: a two-column card made its
+   three controls compete with the name in the supplied screenshots. */
+.friends-list { grid-template-columns: minmax(0, 1fr) !important; gap: 10px !important; }
+.friend-card {
+  display: grid !important;
+  grid-template-columns: 48px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100%;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 12px 14px !important;
+  border: 1px solid #c9e0e7 !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  transition: border-color .16s ease, background-color .16s ease !important;
+}
+.friend-card:hover { border-color: #70b7cb !important; background: #f5fafc !important; box-shadow: none !important; transform: none !important; }
+.friend-card-avatar { width: 46px !important; height: 46px !important; background: #e1f1f5 !important; color: #176b88 !important; box-shadow: none !important; }
+.friend-card-info { min-width: 0 !important; }
+.friend-card-name { white-space: normal !important; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden !important; line-height: 1.35; }
+.friend-card-meta { color: #607780 !important; line-height: 1.4; overflow-wrap: anywhere; }
+.friend-card-actions { display: flex !important; justify-content: flex-end; flex-wrap: wrap; gap: 7px !important; }
+.friend-card-actions .button { min-height: 36px !important; padding: 6px 10px !important; border-radius: 10px !important; white-space: nowrap; }
+.friend-card-actions .button:not(.primary):not(.danger-button) { border-color: #c5dfe7 !important; background: #f6fafb !important; color: #28576a !important; }
+.friend-card-actions .button:not(.primary):not(.danger-button):hover { border-color: #77b9cb !important; background: #eaf5f8 !important; }
+
+.friends-search-bar { border-color: #c8e0e8 !important; background: #f9fcfd !important; }
+.friends-search-bar:focus-within { border-color: #268eae !important; box-shadow: 0 0 0 3px rgba(38,142,174,.13) !important; }
+.friends-subtabs { border-color: #d8e8ed !important; gap: 6px !important; }
+.friends-subtab { color: #526b75 !important; border-radius: 10px !important; }
+.friends-subtab:hover { background: #eef6f8 !important; color: #214f63 !important; }
+.friends-subtab.is-active { background: #e5f3f7 !important; color: #176b88 !important; }
+.friends-suggest-banner { background: #f1f8fa !important; border-color: #cfe4eb !important; border-radius: 14px !important; }
+.friends-suggest-banner strong { color: #175d77 !important; }
+
+/* Keep the accent while removing the abrupt 90° conversation-card hover. */
+.conversation-item:hover { border-color: #70b7cb !important; background: #f4fafc !important; transform: none !important; }
+html[data-theme="dark"] .dialog:not(#item-dialog) .dialog-card { border-color: #31515e; }
+html[data-theme="dark"] .user-profile-name-row .badge { border-color: #345a69; background: #203c49; color: #aee5ef; }
+html[data-theme="dark"] .user-profile-trust-pill, html[data-theme="dark"] .user-profile-trust-pill.verified { border-color: #345b69; background: #203c49; color: #aee5ef; }
+html[data-theme="dark"] .friend-card { border-color: #31515e !important; background: #172b36 !important; color: #eaf3f6 !important; }
+html[data-theme="dark"] .friend-card:hover { border-color: #4d8294 !important; background: #1b3440 !important; }
+html[data-theme="dark"] .friend-card-meta { color: #aec4cd !important; }
+html[data-theme="dark"] .friend-card-actions .button:not(.primary):not(.danger-button) { border-color: #3a5b68 !important; background: #203945 !important; color: #d9edf2 !important; }
+html[data-theme="dark"] .friend-card-actions .button:not(.primary):not(.danger-button):hover { border-color: #5b9cb0 !important; background: #264754 !important; }
+html[data-theme="dark"] .friends-search-bar { border-color: #355664 !important; background: #172b36 !important; }
+html[data-theme="dark"] .friends-search-bar:focus-within { border-color: #66c7dc !important; box-shadow: 0 0 0 3px rgba(102,199,220,.14) !important; }
+html[data-theme="dark"] .friends-subtabs { border-color: #304c58 !important; }
+html[data-theme="dark"] .friends-subtab { color: #b0c5cd !important; }
+html[data-theme="dark"] .friends-subtab:hover, html[data-theme="dark"] .friends-subtab.is-active { background: #203b48 !important; color: #aee5ef !important; }
+html[data-theme="dark"] .friends-suggest-banner { background: #172f3b !important; border-color: #355765 !important; }
+html[data-theme="dark"] .friends-suggest-banner strong { color: #aee5ef !important; }
+html[data-theme="dark"] .conversation-item:hover { border-color: #4d8294 !important; background: #1b3440 !important; }
+
+@media (max-width: 600px) {
+  .user-profile-hero { flex-direction: row !important; align-items: flex-start !important; gap: 12px !important; text-align: left !important; }
+  .user-profile-avatar { width: 56px; height: 56px; }
+  .user-profile-titles { padding-right: 38px; }
+  .user-profile-name-row { justify-content: flex-start !important; }
+  .user-profile-name-row h2 { font-size: 18px; }
+  .user-profile-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+  .user-profile-actions .button { min-height: 38px; padding: 7px 8px; font-size: 12px; }
+  #user-profile-review-btn { grid-column: 1 / -1; }
+  .friend-card { grid-template-columns: 44px minmax(0, 1fr) !important; align-items: start !important; gap: 8px 11px !important; padding: 11px 12px !important; }
+  .friend-card-avatar { width: 42px !important; height: 42px !important; }
+  .friend-card-actions { grid-column: 2 / -1; justify-content: flex-start; }
+}
+@media (max-width: 380px) {
+  .profile-card-lux { padding: 25px 13px 16px !important; }
+  .user-profile-titles { padding-right: 34px; }
+  .user-profile-avatar { width: 50px; height: 50px; }
+  .user-profile-actions { grid-template-columns: minmax(0, 1fr); }
+  #user-profile-review-btn { grid-column: auto; }
+  .friend-card-actions .button { padding-inline: 8px !important; font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .friend-card, .conversation-item { transition: none !important; }
+}
+
+
+/* Profile preview fixes: keep labels in the header flow and cool the modal surface. */
+.user-profile-name-row .badge {
+  position: static !important;
+  inset: auto !important;
+  z-index: auto !important;
+  display: inline-flex !important;
+  max-width: 100%;
+  padding: 4px 9px !important;
+  border: 1px solid #b9dce5 !important;
+  border-radius: 999px !important;
+  background: #e6f4f7 !important;
+  color: #176b88 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  white-space: nowrap;
+}
+.dialog:not(#item-dialog) .dialog-card { background: #fff !important; }
+.dialog:not(#item-dialog) .dialog-close { border-color: #c3dce4 !important; background: #edf6f8 !important; color: #275c70 !important; }
+.dialog:not(#item-dialog) .dialog-close:focus-visible { outline-color: #2a91b0 !important; box-shadow: 0 0 0 3px rgba(42,145,176,.18) !important; }
+.messages-dialog-tabs .tab.active, .profile-sub-tabs .tab.active {
+  border-color: #197998 !important;
+  background: #197998 !important;
+  color: #fff !important;
+  box-shadow: inset 0 -2px #146d8b !important;
+}
+.messages-dialog-tabs .tab:not(.active):hover, .profile-sub-tabs .tab:not(.active):hover { background: #edf6f8 !important; color: #1a6078 !important; }
+html[data-theme="dark"] .dialog:not(#item-dialog) .dialog-card { background: #142a35 !important; color: #eaf3f6 !important; }
+html[data-theme="dark"] .dialog:not(#item-dialog) .dialog-close { border-color: #365966 !important; background: #1c3743 !important; color: #dceff4 !important; }
+html[data-theme="dark"] .messages-dialog-tabs .tab.active, html[data-theme="dark"] .profile-sub-tabs .tab.active { border-color: #287e99 !important; background: #246e87 !important; color: #fff !important; }
+html[data-theme="dark"] .messages-dialog-tabs .tab:not(.active):hover, html[data-theme="dark"] .profile-sub-tabs .tab:not(.active):hover { background: #1e3c49 !important; color: #bce6ef !important; }
+
+
+/* Fit profile chrome to the actual mobile viewport and unify its inner panels. */
+.user-profile-dialog { width: min(600px, calc(100vw - 32px)) !important; max-width: calc(100vw - 32px) !important; }
+.profile-card-lux { width: 100%; max-width: 100%; }
+.user-reputation-card { background: #f1f8fa !important; border-color: #cfe4eb !important; box-shadow: none !important; }
+.reputation-score-box { border-right-color: #cfe4eb; }
+.user-profile-actions .button:not(.primary):not(.danger-button) { border-color: #c5dfe7 !important; background: #f5fafb !important; color: #28576a !important; }
+.user-profile-actions .button:not(.primary):not(.danger-button):hover { border-color: #77b9cb !important; background: #eaf5f8 !important; }
+html[data-theme="dark"] .user-reputation-card { background: #172f3b !important; border-color: #31515e !important; box-shadow: none !important; }
+html[data-theme="dark"] .reputation-score-box { border-right-color: #345562; }
+html[data-theme="dark"] .user-profile-actions .button:not(.primary):not(.danger-button) { border-color: #3a5b68 !important; background: #203945 !important; color: #d9edf2 !important; }
+html[data-theme="dark"] .user-profile-actions .button:not(.primary):not(.danger-button):hover { border-color: #5b9cb0 !important; background: #264754 !important; }
+@media (max-width: 600px) {
+  .user-profile-dialog { width: calc(100vw - 24px) !important; max-width: calc(100vw - 24px) !important; }
+  .profile-card-lux { padding-inline: 16px !important; }
+}
+
+
+/* Friend cards: put actions on their own full-width row. */
+.friend-card {
+  grid-template-columns: 48px minmax(0, 1fr) !important;
+  grid-template-areas: "avatar info" "actions actions";
+  align-items: center !important;
+  row-gap: 8px !important;
+}
+.friend-card-avatar { grid-area: avatar; align-self: center; }
+.friend-card-info { grid-area: info; width: 100%; }
+.friend-card-actions {
+  grid-area: actions;
+  grid-column: 1 / -1 !important;
+  width: 100%;
+  justify-content: flex-end !important;
+  padding-top: 8px;
+  margin-top: 2px;
+  border-top: 1px solid #d6e7ec;
+}
+html[data-theme="dark"] .friend-card-actions { border-top-color: #34545f; }
+
+/* Dark search fields use a cool surface and readable text and placeholder. */
+html[data-theme="dark"] .dialog .friends-search-bar { border-color: #355664 !important; background: #172b36 !important; }
+html[data-theme="dark"] .dialog .friends-search-bar input,
+html[data-theme="dark"] .dialog input[type="search"],
+html[data-theme="dark"] .dialog .conversation-search input {
+  border-color: #365562 !important; border-radius: 10px !important;
+  background: #1a303b !important; color: #eaf4f7 !important;
+  color-scheme: dark; box-shadow: none !important;
+}
+html[data-theme="dark"] .dialog .friends-search-bar input::placeholder,
+html[data-theme="dark"] .dialog input[type="search"]::placeholder,
+html[data-theme="dark"] .dialog .conversation-search input::placeholder { color: #a8c0ca !important; opacity: 1; }
+html[data-theme="dark"] .dialog .friends-search-bar input:focus,
+html[data-theme="dark"] .dialog input[type="search"]:focus,
+html[data-theme="dark"] .dialog .conversation-search input:focus { border-color: #66c7dc !important; outline: none; box-shadow: 0 0 0 3px rgba(102,199,220,.15) !important; }
+html[data-theme="dark"] .dialog .friends-search-icon { color: #a8d7e2; }
+@media (max-width: 600px) {
+  .friend-card { grid-template-columns: 44px minmax(0, 1fr) !important; }
+  .friend-card-actions { grid-column: 1 / -1 !important; justify-content: flex-end !important; }
+}
