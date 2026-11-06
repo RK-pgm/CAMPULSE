@@ -63,6 +63,8 @@ const state = {
   selectedMapPlaceId: '',
   activeChatUserId: null,
   activeChatItemId: null,
+  activeChatIsFriend: false,
+  pendingChatImage: null,
   chatPollingTimer: null,
   activeProfileUserId: null,
   activeReviewTargetId: null,
@@ -2167,6 +2169,7 @@ function openProfile() {
   byId('profile-name').value = state.user?.name || '';
   byId('profile-student-id').value = state.user?.studentId || '';
   byId('profile-grade').value = state.user?.grade || '';
+  byId('profile-user-type').value = state.user?.userType || 'student';
   byId('profile-school').value = state.user?.schoolId || state.schools.find((school) => school.name === state.user?.school)?.id || '';
   state._profileAvatarData = null;
   const avatarPreview = byId('profile-avatar-preview');
@@ -2398,6 +2401,7 @@ async function saveProfile(event) {
       body: JSON.stringify({
         name: byId('profile-name').value.trim(),
         grade: byId('profile-grade').value.trim(),
+        userType: byId('profile-user-type').value,
         schoolId: byId('profile-school').value,
         ...(state._profileAvatarData ? { avatar: state._profileAvatarData } : {}),
       }),
@@ -3093,6 +3097,7 @@ function startRealtimeStream() {
           hideTypingIndicator();
         } else if (isFromOther) {
           showRealtimeChatToast(msg);
+          if (byId('messages-dialog')?.open && state.activeMessageTab === 'conversations') loadConversationsList();
         }
       } catch {}
     });
@@ -3174,7 +3179,7 @@ function showRealtimeChatToast(msg) {
   title.textContent = msg.fromName || 'สมาชิก';
   const text = document.createElement('div');
   text.className = 'realtime-toast-msg';
-  text.textContent = msg.message;
+  text.textContent = msg.image ? (msg.message ? `📷 ${msg.message}` : 'ส่งรูปภาพ') : msg.message;
   content.append(title, text);
   const btn = document.createElement('button');
   btn.className = 'button small primary realtime-toast-btn';
@@ -3203,6 +3208,7 @@ async function openChat(userId, itemId = null) {
   hideTypingIndicator();
 
   byId('chat-input-text').value = '';
+  clearChatImage();
   byId('chat-dialog').showModal();
   await refreshChatThread(true);
 
@@ -3225,6 +3231,8 @@ function closeChat() {
   clearTimeout(state.typingTimer);
   state.activeChatUserId = null;
   state.activeChatItemId = null;
+  state.activeChatIsFriend = false;
+  clearChatImage();
   byId('chat-dialog').close();
   hideTypingIndicator();
 }
@@ -3268,6 +3276,19 @@ async function refreshChatThread(forceScroll = false) {
       };
     }
 
+    state.activeChatIsFriend = Boolean(result.isFriend);
+    const friendGate = byId('chat-friend-gate');
+    friendGate?.classList.toggle('hidden', state.activeChatIsFriend);
+    byId('chat-input-form')?.classList.toggle('hidden', !state.activeChatIsFriend);
+    byId('chat-quick-suggestions')?.classList.toggle('hidden', !state.activeChatIsFriend);
+    const gateAddButton = byId('chat-gate-add-friend');
+    if (gateAddButton) gateAddButton.onclick = async () => {
+      gateAddButton.disabled = true;
+      await toggleFriend(state.activeChatUserId, false);
+      await refreshChatThread(false);
+      gateAddButton.disabled = false;
+    };
+
     // Update Header Actions
     byId('chat-view-profile-btn').onclick = () => openUserProfile(state.activeChatUserId);
     byId('chat-rate-user-btn').onclick = () => openReviewDialog(state.activeChatUserId, targetUser.name);
@@ -3307,7 +3328,21 @@ async function refreshChatThread(forceScroll = false) {
 
         const bubble = document.createElement('div');
         bubble.className = 'chat-bubble';
-        bubble.textContent = msg.message;
+        if (msg.image) {
+          const image = document.createElement('img');
+          image.className = 'chat-message-image';
+          image.src = msg.image;
+          image.alt = 'รูปภาพที่แนบมา';
+          image.loading = 'lazy';
+          image.addEventListener('click', () => window.open(msg.image, '_blank', 'noopener'));
+          bubble.append(image);
+        }
+        if (msg.message) {
+          const text = document.createElement('span');
+          text.className = 'chat-message-text';
+          text.textContent = msg.message;
+          bubble.append(text);
+        }
 
         const meta = document.createElement('div');
         meta.className = 'chat-bubble-meta';
@@ -3327,11 +3362,27 @@ async function refreshChatThread(forceScroll = false) {
   }
 }
 
+function clearChatImage() {
+  state.pendingChatImage = null;
+  const picker = byId('chat-image-input');
+  if (picker) picker.value = '';
+  byId('chat-image-preview')?.classList.add('hidden');
+  const preview = byId('chat-image-preview-img');
+  if (preview) preview.removeAttribute('src');
+}
+
+async function prepareChatImage(file) {
+  if (!file || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('เลือกรูป JPG, PNG หรือ WebP');
+  const blob = await optimizePhoto(file);
+  return fileAsDataUrl(blob);
+}
+
 async function sendChatMessage(event) {
   event.preventDefault();
   const input = byId('chat-input-text');
   const message = input.value.trim();
-  if (!message || !state.activeChatUserId) return;
+  if ((!message && !state.pendingChatImage) || !state.activeChatUserId) return;
+  if (!state.activeChatIsFriend) return showToast('เพิ่มเพื่อนก่อนจึงจะส่งข้อความได้');
   const sendBtn = byId('chat-send-btn');
   sendBtn.disabled = true;
   clearTimeout(state.typingTimer);
@@ -3343,9 +3394,11 @@ async function sendChatMessage(event) {
         toId: state.activeChatUserId,
         itemId: state.activeChatItemId,
         message,
+        ...(state.pendingChatImage ? { image: state.pendingChatImage } : {}),
       }),
     });
     input.value = '';
+    clearChatImage();
     await refreshChatThread(true);
   } catch (error) {
     showToast(error.message);
@@ -3369,7 +3422,8 @@ async function openUserProfile(userId) {
     renderUserAvatar(byId('user-profile-avatar'), u.avatar, u.name?.charAt(0) || '👤');
     
     const roleBadge = byId('user-profile-role-badge');
-    roleBadge.textContent = u.role === 'admin' ? 'ผู้ดูแล' : u.role === 'staff' ? 'เจ้าหน้าที่' : 'นักเรียน';
+    const memberTypeLabel = ({ student: 'นักเรียน', teacher: 'ครู / บุคลากร', external: 'บุคคลภายนอก' })[u.userType] || 'นักเรียน';
+    roleBadge.textContent = u.role === 'admin' ? 'ผู้ดูแล' : u.role === 'staff' ? 'เจ้าหน้าที่' : memberTypeLabel;
     roleBadge.className = `badge ${u.role === 'admin' ? 'lost' : 'found'}`;
 
     const schoolInfo = byId('user-profile-school-info');
@@ -3629,6 +3683,7 @@ async function loadConversationsList() {
     convos.forEach((c) => {
       const item = document.createElement('article');
       item.className = 'conversation-item';
+      item.dataset.searchText = String(c.partner.name || '').toLocaleLowerCase();
       
       const av = document.createElement('div');
       av.className = 'conversation-avatar';
@@ -3649,7 +3704,7 @@ async function loadConversationsList() {
 
       const preview = document.createElement('p');
       preview.className = 'conversation-preview';
-      preview.textContent = c.lastMessage;
+      preview.textContent = c.lastImage ? (c.lastMessage ? `📷 ${c.lastMessage}` : '📷 ส่งรูปภาพ') : c.lastMessage;
 
       body.append(row, preview);
 
@@ -3660,6 +3715,13 @@ async function loadConversationsList() {
         body.append(itemTag);
       }
 
+      if (c.unreadCount > 0) {
+        const unread = document.createElement('span');
+        unread.className = 'conversation-unread';
+        unread.textContent = c.unreadCount > 9 ? '9+' : String(c.unreadCount);
+        unread.setAttribute('aria-label', `${c.unreadCount} ข้อความที่ยังไม่ได้อ่าน`);
+        body.append(unread);
+      }
       item.append(av, body);
       item.onclick = () => {
         byId('messages-dialog').close();
@@ -3795,7 +3857,8 @@ async function runFriendsSearch(query) {
       name.textContent = u.name;
       const meta = document.createElement('div');
       meta.className = 'friend-card-meta';
-      const parts = [u.school || u.province, u.grade, renderStarsString(u.reputation?.ratingAverage).slice(0, 5)].filter(Boolean);
+      const memberType = ({ student: 'นักเรียน', teacher: 'ครู / บุคลากร', external: 'บุคคลภายนอก' })[u.userType] || 'สมาชิก';
+      const parts = [memberType, u.school || u.province, u.grade, renderStarsString(u.reputation?.ratingAverage).slice(0, 5)].filter(Boolean);
       meta.textContent = parts.join(' · ');
       info.append(name, meta);
 
@@ -3812,13 +3875,17 @@ async function runFriendsSearch(query) {
         u.isFriend = !u.isFriend;
         addBtn.textContent = u.isFriend ? '✓ เป็นเพื่อนแล้ว' : '➕ เพิ่มเพื่อน';
         addBtn.className = `button small ${u.isFriend ? 'secondary' : 'primary'}`;
+        chatBtn.disabled = !u.isFriend;
+        chatBtn.textContent = u.isFriend ? '💬 แชท' : 'เพิ่มเพื่อนก่อนแชท';
         loadFriendsList();
       };
 
       const chatBtn = document.createElement('button');
       chatBtn.className = 'button small';
       chatBtn.type = 'button';
-      chatBtn.textContent = '💬 แชท';
+      chatBtn.textContent = u.isFriend ? '💬 แชท' : 'เพิ่มเพื่อนก่อนแชท';
+      chatBtn.disabled = !u.isFriend;
+      chatBtn.title = u.isFriend ? 'เปิดแชท' : 'เพิ่มสมาชิกเป็นเพื่อนก่อนจึงจะแชทได้';
       chatBtn.onclick = (e) => {
         e.stopPropagation();
         byId('messages-dialog').close();
@@ -4594,6 +4661,31 @@ function bindEvents() {
   // Chat & Messaging Events
   byId('close-chat').addEventListener('click', closeChat);
   byId('chat-input-form').addEventListener('submit', sendChatMessage);
+  byId('chat-image-input').addEventListener('change', async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const picker = event.currentTarget;
+    const sendButton = byId('chat-send-btn');
+    sendButton.disabled = true;
+    try {
+      state.pendingChatImage = await prepareChatImage(file);
+      byId('chat-image-preview-img').src = state.pendingChatImage;
+      byId('chat-image-preview').classList.remove('hidden');
+    } catch (error) {
+      clearChatImage();
+      showToast(error.message || 'เตรียมรูปภาพไม่สำเร็จ');
+    } finally {
+      sendButton.disabled = false;
+      picker.value = '';
+    }
+  });
+  byId('chat-image-remove').addEventListener('click', clearChatImage);
+  byId('conversation-search-input').addEventListener('input', (event) => {
+    const query = event.currentTarget.value.trim().toLocaleLowerCase();
+    byId('conversation-list').querySelectorAll('.conversation-item').forEach((item) => {
+      item.hidden = !item.dataset.searchText.includes(query);
+    });
+  });
   byId('chat-input-text').addEventListener('input', () => {
     if (!state.activeChatUserId) return;
     sendTypingStatus(true);

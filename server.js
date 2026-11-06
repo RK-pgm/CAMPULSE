@@ -410,6 +410,7 @@ function cleanUser(user) {
     customSchoolName: user.customSchoolName || '',
     avatar: user.avatar || '',
     role: user.role || 'student',
+    userType: ['student', 'teacher', 'external'].includes(user.userType) ? user.userType : 'student',
     createdAt: user.createdAt || '',
   };
 }
@@ -793,6 +794,10 @@ async function handler(req, res) {
       if (!account) return json(res, 404, { error: 'ไม่พบบัญชีผู้ใช้' });
       account.name = name;
       account.grade = grade;
+      if (Object.hasOwn(body, 'userType')) {
+        if (!['student', 'teacher', 'external'].includes(body.userType)) return json(res, 400, { error: 'กรุณาเลือกประเภทสมาชิก' });
+        account.userType = body.userType;
+      } else if (!account.userType) account.userType = 'student';
       account.schoolId = selectedSchool?.id || '';
       account.school = selectedSchool?.name || '';
       if (typeof body.province === 'string') account.province = body.province.trim();
@@ -883,6 +888,7 @@ async function handler(req, res) {
         id: crypto.randomUUID(),
         name,
         studentId,
+        userType: 'student',
         role: adminCandidate
           ? 'admin'
           : staffId && studentId.toLowerCase() === staffId
@@ -2044,8 +2050,18 @@ async function handler(req, res) {
       if (item && (item.status === 'resolved' || isExpiredItem(item)))
         return json(res, 409, { error: 'ประกาศนี้ปิดแล้วและไม่รับข้อความใหม่' });
       const message = String(body.message || '').trim();
-      if (message.length < 1 || message.length > 1000)
-        return json(res, 400, { error: 'ข้อความต้องมีความยาว 1–1,000 ตัวอักษร' });
+      if (message.length > 1000) return json(res, 400, { error: 'ข้อความต้องมีความยาวไม่เกิน 1,000 ตัวอักษร' });
+      const recipient = store.users.find((entry) => entry.id === recipientId);
+      if (!recipient) return json(res, 404, { error: 'ไม่พบผู้รับข้อความ' });
+      const isFriend = (store.friends || []).some((friend) => friend.userId === user.id && friend.friendId === recipientId);
+      if (!isFriend) return json(res, 403, { error: 'เพิ่มเพื่อนกับสมาชิกคนนี้ก่อนจึงจะเริ่มแชทได้' });
+      if (!message && !body.image) return json(res, 400, { error: 'พิมพ์ข้อความหรือแนบรูปภาพก่อนส่ง' });
+      let image = '';
+      if (body.image) {
+        if (typeof body.image !== 'string') return json(res, 400, { error: 'รูปภาพไม่ถูกต้อง' });
+        try { image = await storeItemPhoto(body.image); }
+        catch (error) { return json(res, 400, { error: error.message || 'รูปภาพไม่ถูกต้อง' }); }
+      }
       const entry = {
         id: crypto.randomUUID(),
         itemId: item?.id || body.itemId || null,
@@ -2055,6 +2071,8 @@ async function handler(req, res) {
         fromAvatar: user.avatar || '',
         toId: recipientId,
         message,
+        ...(image ? { image } : {}),
+        readAt: null,
         createdAt: new Date().toISOString(),
       };
       store.messages.push(entry);
@@ -2117,12 +2135,18 @@ async function handler(req, res) {
       const store = await readStore();
       const targetUser = store.users.find((u) => u.id === withUserId);
       if (!targetUser) return json(res, 404, { error: 'ไม่พบคู่สนทนา' });
+      const isFriend = (store.friends || []).some((f) => f.userId === user.id && f.friendId === targetUser.id);
       const messages = store.messages
         .filter((m) => (m.fromId === user.id && m.toId === withUserId) || (m.fromId === withUserId && m.toId === user.id))
         .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+      const unread = messages.filter((message) => message.toId === user.id && !message.readAt);
+      if (unread.length) {
+        const readAt = new Date().toISOString();
+        unread.forEach((message) => { message.readAt = readAt; });
+        await writeStore(store);
+      }
       const item = itemId ? store.items.find((x) => x.id === itemId) : null;
       const reputation = computeUserReputation(targetUser.id, store);
-      const isFriend = (store.friends || []).some((f) => f.userId === user.id && f.friendId === targetUser.id);
       return json(res, 200, {
         messages,
         targetUser: cleanUser(targetUser),
@@ -2148,6 +2172,8 @@ async function handler(req, res) {
               partner: cleanUser(partner),
               reputation: computeUserReputation(partner.id, store),
               lastMessage: msg.message,
+              lastImage: Boolean(msg.image),
+              unreadCount: userMsgs.filter((entry) => entry.fromId === partnerId && !entry.readAt).length,
               lastAt: msg.createdAt,
               itemId: msg.itemId || null,
               itemName: msg.itemName || null,

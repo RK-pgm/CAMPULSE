@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f3f6f2" />
+    <meta name="theme-color" content="#effafd" />
     <meta name="application-name" content="CAMPULSE" />
     <meta name="description" content="CAMPULSE ศูนย์รวมบริการและชุมชนในโรงเรียน ค้นหาของหาย แจ้งข้อเสนอแนะ ติดต่อแชท และดูคะแนนความน่าเชื่อถือของสมาชิก" />
     <title>CAMPULSE — ศูนย์รวมบริการและชุมชนในโรงเรียน</title>
@@ -12,9 +12,9 @@
         if (localStorage.getItem('khonghai-theme') === 'dark') document.documentElement.dataset.theme = 'dark';
       } catch {}
     </script>
-    <link rel="stylesheet" href="style.css?v=campulse-brand-4" />
-    <link rel="stylesheet" href="campulse-override.css?v=campulse-ui-5" />
-    <script src="script.js?v=campulse-brand-2" defer></script>
+    <link rel="stylesheet" href="style.css?v=campulse-ocean-1" />
+    <link rel="stylesheet" href="campulse-override.css?v=campulse-chat-1" />
+    <script src="script.js?v=campulse-chat-1" defer></script>
 </head>
 <body>
     <header class="topbar">
@@ -1014,6 +1014,12 @@
         <input id="profile-student-id" name="studentId" readonly />
         <label for="profile-grade">ชั้น / ห้อง</label>
         <input id="profile-grade" name="grade" maxlength="40" placeholder="เช่น ม.3/2" />
+        <label for="profile-user-type">ประเภทสมาชิก</label>
+        <select id="profile-user-type" name="userType">
+          <option value="student">นักเรียน</option>
+          <option value="teacher">ครู / บุคลากร</option>
+          <option value="external">บุคคลภายนอก</option>
+        </select>
         <label for="profile-school">โรงเรียนที่สังกัด</label>
         <select id="profile-school" name="schoolId">
           <option value="">สาธารณะ · ไม่ผูกกับโรงเรียน</option>
@@ -1131,6 +1137,7 @@
         </div>
 
         <div class="messages-tab-panel" id="panel-conversations">
+          <label class="conversation-search"><span aria-hidden="true">⌕</span><input id="conversation-search-input" type="search" placeholder="ค้นหาบทสนทนา" aria-label="ค้นหาบทสนทนา"></label>
           <div id="conversation-list" class="conversation-list"></div>
           <p id="conversations-empty" class="empty-message hidden">ยังไม่มีบทสนทนา เริ่มคุยโดยกดปุ่มแชทในประกาศหรือโปรไฟล์ของเพื่อนได้เลย!</p>
         </div>
@@ -1227,6 +1234,7 @@
 
         <!-- Message thread feed -->
         <div class="chat-message-feed" id="chat-message-feed" aria-live="polite"></div>
+        <div class="chat-friend-gate hidden" id="chat-friend-gate" aria-live="polite"><span class="chat-gate-icon" aria-hidden="true">✦</span><div><strong>เพิ่มเพื่อนก่อนเริ่มแชท</strong><p>เชื่อมต่อเป็นเพื่อนกับสมาชิกคนนี้ แล้วคุณจะส่งข้อความและรูปภาพได้</p></div><button class="button primary" id="chat-gate-add-friend" type="button">＋ เพิ่มเพื่อน</button></div>
 
         <!-- Typing indicator bubble -->
         <div class="chat-typing-row hidden" id="chat-typing-indicator" aria-live="polite">
@@ -1248,7 +1256,9 @@
 
         <!-- Chat input form -->
         <form class="chat-input-bar" id="chat-input-form">
-          <input id="chat-input-text" type="text" autocomplete="off" maxlength="1000" placeholder="พิมพ์ข้อความที่นี่... (กด Enter เพื่อส่ง)" required />
+          <label class="chat-attach-button" for="chat-image-input" title="แนบรูปภาพ" aria-label="แนบรูปภาพ">＋</label>
+          <input id="chat-image-input" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+          <div class="chat-compose-field"><div class="chat-image-preview hidden" id="chat-image-preview"><img id="chat-image-preview-img" alt="ตัวอย่างรูปที่จะแนบ"><button type="button" id="chat-image-remove" aria-label="ลบรูปที่แนบ">×</button></div><input id="chat-input-text" type="text" autocomplete="off" maxlength="1000" placeholder="พิมพ์ข้อความ..." aria-label="พิมพ์ข้อความ"></div>
           <button class="button primary chat-send-btn" id="chat-send-btn" type="submit" aria-label="ส่งข้อความ">
             <span>ส่ง</span>
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" width="18" height="18"><path d="m2 21 21-9L2 3v7l15 2-15 2v7Z" fill="currentColor"/></svg>
