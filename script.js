@@ -339,7 +339,7 @@ function enterApp(user) {
   }
   byId('auth-screen').classList.add('hidden');
   byId('app').classList.remove('hidden');
-  showBoard();
+  showPortal();
   renderNav();
   renderCommunityLabel();
   renderPortalWelcome();
