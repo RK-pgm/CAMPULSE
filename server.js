@@ -2087,6 +2087,12 @@ async function handler(req, res) {
       const body = await readBody(req);
       const toId = String(body.toId || '').trim();
       if (!toId) return json(res, 400, { error: 'กรุณาระบุผู้รับ' });
+      if (toId === user.id) return json(res, 400, { error: 'ไม่สามารถส่งสถานะถึงตนเองได้' });
+      const store = await readStore();
+      if (!store.users.some((entry) => entry.id === toId))
+        return json(res, 404, { error: 'ไม่พบผู้รับ' });
+      const isFriend = (store.friends || []).some((friend) => friend.userId === user.id && friend.friendId === toId);
+      if (!isFriend) return json(res, 403, { error: 'เพิ่มเพื่อนกับสมาชิกคนนี้ก่อนจึงจะเริ่มแชทได้' });
       broadcastRealtime(toId, 'typing', {
         fromId: user.id,
         fromName: user.name,

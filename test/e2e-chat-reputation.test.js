@@ -3,7 +3,15 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'campulse-chat-test-'));
+process.env.DATA_DIR = testDataDir;
+process.env.UPLOAD_DIR = path.join(testDataDir, 'uploads');
+process.env.ADMIN_SETUP_CODE = 'campulse-test-only-code';
 const handler = require('../server');
+test.after(() => fs.rmSync(testDataDir, { recursive: true, force: true }));
 
 function makeRequest(server, method, path, headers = {}, body = null) {
   return new Promise((resolve, reject) => {
@@ -87,14 +95,27 @@ test('Chat, Friends, and Review E2E flow', async () => {
     const userB = loginB.body.user;
     assert.equal(userB.name, 'สมหญิง มีน้ำใจ');
 
-    // 3. Send Message from User A to User B
+    // 3. Chat is unavailable until the two users are friends.
+    const blockedMessage = await makeRequest(server, 'POST', '/api/messages', { 'Cookie': cookieA }, {
+      toId: userB.id,
+      message: 'สวัสดีครับ ของที่แจ้งไว้ยังอยู่ไหมครับ?',
+    });
+    assert.equal(blockedMessage.status, 403);
+
+    const addFriend = await makeRequest(server, 'POST', '/api/friends/add', { 'Cookie': cookieA }, {
+      friendId: userB.id,
+    });
+    assert.equal(addFriend.status, 200);
+    assert.equal(addFriend.body.isFriend, true);
+
+    // 4. Send Message from User A to User B after adding the friend.
     const sendMsg = await makeRequest(server, 'POST', '/api/messages', { 'Cookie': cookieA }, {
       toId: userB.id,
       message: 'สวัสดีครับ ของที่แจ้งไว้ยังอยู่ไหมครับ?',
     });
     assert.equal(sendMsg.status, 201);
 
-    // 4. User B gets Thread with User A
+    // 5. User B gets Thread with User A
     const getThread = await makeRequest(server, 'GET', `/api/messages/thread?userId=${userA.id}`, { 'Cookie': cookieB });
     assert.equal(getThread.status, 200);
     assert.equal(getThread.body.targetUser.name, 'สมชาย เรียนดี');
@@ -106,13 +127,6 @@ test('Chat, Friends, and Review E2E flow', async () => {
       message: 'ยังอยู่ครับ มารับได้ที่โรงอาหารเลยครับ',
     });
     assert.equal(replyMsg.status, 201);
-
-    // 6. User A adds User B as friend
-    const addFriend = await makeRequest(server, 'POST', '/api/friends/add', { 'Cookie': cookieA }, {
-      friendId: userB.id,
-    });
-    assert.equal(addFriend.status, 200);
-    assert.equal(addFriend.body.isFriend, true);
 
     // Check User A's friends list
     const friendsList = await makeRequest(server, 'GET', '/api/friends', { 'Cookie': cookieA });

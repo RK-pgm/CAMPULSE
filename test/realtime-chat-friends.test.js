@@ -3,7 +3,15 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'campulse-chat-test-'));
+process.env.DATA_DIR = testDataDir;
+process.env.UPLOAD_DIR = path.join(testDataDir, 'uploads');
+process.env.ADMIN_SETUP_CODE = 'campulse-test-only-code';
 const handler = require('../server');
+test.after(() => fs.rmSync(testDataDir, { recursive: true, force: true }));
 
 function makeRequest(server, method, path, headers = {}, body = null) {
   return new Promise((resolve, reject) => {
@@ -90,7 +98,19 @@ test('Real-time chat SSE stream and Friends discovery test', async () => {
     assert.equal(suggestRes.status, 200);
     assert.ok(suggestRes.body.users.some((u) => u.id === user2.id));
 
-    // 4. Test Typing Indicator API
+    // 4. Typing indicators are also restricted until users become friends.
+    const blockedTyping = await makeRequest(server, 'POST', '/api/messages/typing', { 'Cookie': cookie1 }, {
+      toId: user2.id,
+      isTyping: true,
+    });
+    assert.equal(blockedTyping.status, 403);
+
+    const addFriend = await makeRequest(server, 'POST', '/api/friends/add', { 'Cookie': cookie1 }, {
+      friendId: user2.id,
+    });
+    assert.equal(addFriend.status, 200);
+
+    // 5. Test Typing Indicator API after adding the friend.
     const typingRes = await makeRequest(server, 'POST', '/api/messages/typing', { 'Cookie': cookie1 }, {
       toId: user2.id,
       isTyping: true,
