@@ -2065,35 +2065,61 @@ html[data-theme="dark"] .portal-activity .portal-workorders-link:hover { border-
 }
 
 
-/* Friend cards use a longer horizontal frame on wider screens. */
+/* Friend discovery uses full-width rows so names and actions never collide. */
 .messages-dialog-card {
   width:min(1040px,calc(100vw - 40px)) !important;
   max-width:calc(100vw - 40px) !important;
 }
 #subpanel-my-friends .friends-list,
 #subpanel-find-friends .friends-list {
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) !important;
+  grid-auto-flow:row !important;
   width:100% !important;
   max-width:none !important;
+  gap:10px !important;
 }
-.friend-card {
-  grid-template-columns:48px minmax(120px,1fr) auto !important;
+.messages-dialog-card .friend-card {
+  display:grid !important;
+  grid-template-columns:48px minmax(0,1fr) auto !important;
   grid-template-rows:minmax(46px,auto) !important;
   grid-template-areas:"avatar info actions" !important;
-  min-height:76px !important;
-  column-gap:14px !important;
+  align-items:center !important;
+  gap:8px 14px !important;
+  width:100% !important;
+  min-width:0 !important;
+  min-height:82px !important;
+  box-sizing:border-box !important;
+  overflow:hidden;
 }
-.friend-card-avatar { grid-area:avatar; }
-.friend-card-info { grid-area:info; }
-.friend-card-actions {
+.messages-dialog-card .friend-card-avatar { grid-area:avatar !important; }
+.messages-dialog-card .friend-card-info {
+  grid-area:info !important;
+  width:100% !important;
+  min-width:0 !important;
+  overflow-wrap:anywhere;
+}
+.messages-dialog-card .friend-card-name { overflow-wrap:anywhere; }
+.messages-dialog-card .friend-card-meta { min-width:0; overflow-wrap:anywhere; }
+.messages-dialog-card .friend-card-actions {
   grid-area:actions !important;
   grid-column:auto !important;
   grid-row:1 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  flex-wrap:wrap !important;
+  gap:8px !important;
   width:auto !important;
-  align-self:center !important;
-  flex-wrap:nowrap !important;
-  padding-top:0 !important;
-  margin-top:0 !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  padding:0 !important;
+  margin:0 !important;
   border-top:0 !important;
+}
+.messages-dialog-card .friend-card-actions .button {
+  flex:0 0 auto;
+  white-space:nowrap;
 }
 @media (max-width:700px) {
   .messages-dialog-card {
@@ -2101,27 +2127,24 @@ html[data-theme="dark"] .portal-activity .portal-workorders-link:hover { border-
     max-width:100vw !important;
     padding:14px !important;
   }
-}
-@media (max-width:560px) {
-  .friend-card {
+  .messages-dialog-card .friend-card {
     grid-template-columns:44px minmax(0,1fr) !important;
     grid-template-rows:minmax(42px,auto) auto !important;
     grid-template-areas:"avatar info" "actions actions" !important;
     min-height:100px !important;
-    row-gap:7px !important;
-    column-gap:11px !important;
+    gap:7px 11px !important;
   }
-  .friend-card-actions {
+  .messages-dialog-card .friend-card-avatar { width:42px !important; height:42px !important; }
+  .messages-dialog-card .friend-card-actions {
     grid-area:actions !important;
     grid-column:1 / -1 !important;
     grid-row:2 !important;
     width:100% !important;
     justify-content:flex-end !important;
-    flex-wrap:wrap !important;
     padding-top:7px !important;
     border-top:1px solid #d6e7ec !important;
   }
-  html[data-theme="dark"] .friend-card-actions { border-top-color:#34545f !important; }
+  html[data-theme="dark"] .messages-dialog-card .friend-card-actions { border-top-color:#34545f !important; }
 }
 
 
