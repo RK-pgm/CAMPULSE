@@ -1,5 +1,6 @@
 'use strict';
 const http = require('node:http');
+const { AsyncLocalStorage } = require('node:async_hooks');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
@@ -94,6 +95,7 @@ const SCHOOLS = [
 ];
 let localStoreWriteQueue = Promise.resolve();
 const realtimeClients = new Map(); // userId -> Set<ServerResponse>
+const storeRequestContext = new AsyncLocalStorage();
 
 function broadcastRealtime(userId, eventName, data) {
   if (!userId) return;
@@ -225,26 +227,36 @@ async function redisCommand(...command) {
   });
   const result = await response.json().catch(() => ({}));
   if (!response.ok || result.error) {
-    console.error('Upstash Redis request failed:', result.error || response.status);
-    const error = new Error('ฐานข้อมูลขัดข้องชั่วคราว กรุณาลองอีกครั้ง');
+    const upstreamError = String(result.error || response.status);
+    console.error('Upstash Redis request failed:', upstreamError);
+    const isPlanLimit = /reached current .*plan limits/i.test(upstreamError);
+    const error = new Error(isPlanLimit
+      ? 'ฐานข้อมูล Upstash ใช้โควตาของแพ็กเกจครบแล้ว ผู้ดูแลต้องเพิ่มโควตาหรือรอรอบรีเซ็ตก่อนจึงจะเข้าใช้งานได้'
+      : 'ฐานข้อมูลขัดข้องชั่วคราว กรุณาลองอีกครั้ง');
     error.status = 503;
     throw error;
   }
   return result.result;
 }
 async function readStore() {
-  if (process.env.VERCEL || KV_URL || KV_TOKEN) {
-    const value = await redisCommand('GET', KV_KEY);
-    return value ? normalizeStore(JSON.parse(value)) : emptyStore();
-  }
-  try {
-    return normalizeStore(JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')));
-  } catch (cause) {
-    if (cause.code === 'ENOENT') return emptyStore();
-    const error = new Error('ไม่สามารถอ่านข้อมูลในเครื่องได้ กรุณาติดต่อผู้ดูแลระบบ');
-    error.status = 503;
-    throw error;
-  }
+  const requestContext = storeRequestContext.getStore();
+  if (requestContext?.storePromise) return requestContext.storePromise;
+  const storePromise = (async () => {
+    if (process.env.VERCEL || KV_URL || KV_TOKEN) {
+      const value = await redisCommand('GET', KV_KEY);
+      return value ? normalizeStore(JSON.parse(value)) : emptyStore();
+    }
+    try {
+      return normalizeStore(JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')));
+    } catch (cause) {
+      if (cause.code === 'ENOENT') return emptyStore();
+      const error = new Error('ไม่สามารถอ่านข้อมูลในเครื่องได้ กรุณาติดต่อผู้ดูแลระบบ');
+      error.status = 503;
+      throw error;
+    }
+  })();
+  if (requestContext) requestContext.storePromise = storePromise;
+  return storePromise;
 }
 async function writeStore(store) {
   if (process.env.VERCEL || KV_URL || KV_TOKEN) {
@@ -686,7 +698,7 @@ function sendFile(res, filename) {
     res.end(content);
   });
 }
-async function handler(req, res) {
+async function handleRequest(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const delegatedRoute = url.searchParams.get('__vercel_route');
   const requestedPath = delegatedRoute === null
@@ -2445,6 +2457,9 @@ async function handler(req, res) {
   } finally {
     await releaseStoreLock(lockToken);
   }
+}
+async function handler(req, res) {
+  return storeRequestContext.run({ storePromise: null }, () => handleRequest(req, res));
 }
 handler.broadcastRealtime = broadcastRealtime;
 handler.realtimeClients = realtimeClients;

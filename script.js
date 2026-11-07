@@ -72,6 +72,8 @@ const state = {
   selectedReviewTags: new Set(),
   activeMessageTab: 'conversations',
   realtimeSource: null,
+  realtimeReconnectTimer: null,
+  realtimeReconnectDelay: 5000,
   typingTimer: null,
   activeFriendsSubtab: 'my-friends',
 };
@@ -3083,6 +3085,7 @@ function startRealtimeStream() {
     state.realtimeSource = sse;
 
     sse.addEventListener('connected', () => {
+      state.realtimeReconnectDelay = 5000;
       console.log('[CAMPULSE] Real-time connected');
     });
 
@@ -3122,7 +3125,13 @@ function startRealtimeStream() {
     sse.onerror = () => {
       sse.close();
       state.realtimeSource = null;
-      setTimeout(() => { if (state.user) startRealtimeStream(); }, 5000);
+      const delay = state.realtimeReconnectDelay;
+      state.realtimeReconnectDelay = Math.min(delay * 2, 60000);
+      clearTimeout(state.realtimeReconnectTimer);
+      state.realtimeReconnectTimer = setTimeout(() => {
+        state.realtimeReconnectTimer = null;
+        if (state.user) startRealtimeStream();
+      }, delay);
     };
   } catch (err) {
     console.warn('[CAMPULSE] SSE unavailable, using polling only', err);
@@ -3130,6 +3139,9 @@ function startRealtimeStream() {
 }
 
 function stopRealtimeStream() {
+  clearTimeout(state.realtimeReconnectTimer);
+  state.realtimeReconnectTimer = null;
+  state.realtimeReconnectDelay = 5000;
   if (state.realtimeSource) {
     state.realtimeSource.close();
     state.realtimeSource = null;
@@ -3220,7 +3232,7 @@ async function openChat(userId, itemId = null) {
       } else {
         clearInterval(state.chatPollingTimer);
       }
-    }, 3000);
+    }, 15000);
   }
 }
 
