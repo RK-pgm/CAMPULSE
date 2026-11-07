@@ -170,7 +170,7 @@ function applyTheme(theme) {
   document.documentElement.dataset.theme = nextTheme;
   try { localStorage.setItem('khonghai-theme', nextTheme); } catch {}
   const themeColor = document.querySelector('meta[name="theme-color"]');
-  if (themeColor) themeColor.content = nextTheme === 'dark' ? '#111914' : '#f3f6f2';
+  if (themeColor) themeColor.content = nextTheme === 'dark' ? '#0c1727' : '#f7fbfc';
   const toggle = document.querySelector('.nav-theme');
   if (toggle) updateThemeToggle(toggle);
 }
