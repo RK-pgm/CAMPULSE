@@ -20,6 +20,11 @@ const KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL
 const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.UPSTASH_REDIS_REST_KV_REST_API_TOKEN || '';
 const KV_KEY = 'found-it:store:v1';
 const KV_LOCK_KEY = 'found-it:store-lock:v1';
+const SUPABASE_URL = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const SUPABASE_CONFIGURED = Boolean(SUPABASE_URL && SUPABASE_SECRET_KEY);
+const SUPABASE_PARTIAL_CONFIG = Boolean(SUPABASE_URL || SUPABASE_SECRET_KEY);
+const SUPABASE_ALLOW_EMPTY_STORE = process.env.SUPABASE_ALLOW_EMPTY_STORE === 'true';
 const SESSION_SECRET = process.env.SESSION_SECRET || (process.env.VERCEL ? '' : crypto.randomBytes(32).toString('hex'));
 const PORT = Number(process.env.PORT) || 3000;
 const BODY_LIMIT = 5 * 1024 * 1024;
@@ -129,7 +134,12 @@ if (!process.env.VERCEL) {
 function assertDeploymentConfig() {
   if (!process.env.VERCEL) return;
   const missing = [];
-  if (!KV_URL || !KV_TOKEN) missing.push('ข้อมูลเชื่อมต่อฐานข้อมูล Redis (Upstash)');
+  if (SUPABASE_PARTIAL_CONFIG && !SUPABASE_CONFIGURED) {
+    if (!SUPABASE_URL) missing.push('SUPABASE_URL');
+    if (!SUPABASE_SECRET_KEY) missing.push('SUPABASE_SECRET_KEY');
+  } else if (!SUPABASE_CONFIGURED && (!KV_URL || !KV_TOKEN)) {
+    missing.push('ข้อมูลเชื่อมต่อฐานข้อมูล Supabase หรือ Redis (Upstash)');
+  }
   if (!SESSION_SECRET) missing.push('SESSION_SECRET (รหัสความปลอดภัยของเซสชัน)');
   if (missing.length) {
     const error = new Error(`การตั้งค่าระบบยังไม่ครบ กรุณาตั้งค่า ${missing.join(' และ ')} ก่อนใช้งาน`);
@@ -238,10 +248,69 @@ async function redisCommand(...command) {
   }
   return result.result;
 }
+async function supabaseRequest(endpoint, options = {}) {
+  if (!SUPABASE_CONFIGURED) {
+    const error = new Error('ยังไม่ได้ตั้งค่าฐานข้อมูล Supabase');
+    error.status = 503;
+    throw error;
+  }
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
+    ...options,
+    headers: {
+      apikey: SUPABASE_SECRET_KEY,
+      ...(!SUPABASE_SECRET_KEY.startsWith('sb_secret_')
+        ? { Authorization: `Bearer ${SUPABASE_SECRET_KEY}` }
+        : {}),
+      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(options.headers || {}),
+    },
+  });
+  if (!response.ok) {
+    const details = await response.text().catch(() => '');
+    console.error('Supabase request failed:', response.status, details.slice(0, 300));
+    const missingSchema = response.status === 404 || /campulse_store|schema cache/i.test(details);
+    const error = new Error(missingSchema
+      ? 'ยังไม่ได้ติดตั้งตาราง CAMPULSE ใน Supabase กรุณา deploy migration ของ Supabase ก่อน'
+      : 'ฐานข้อมูล Supabase ขัดข้องชั่วคราว กรุณาลองอีกครั้ง');
+    error.status = 503;
+    throw error;
+  }
+  const payload = await response.text();
+  return payload ? JSON.parse(payload) : null;
+}
+async function readSupabaseStore() {
+  const rows = await supabaseRequest('campulse_store?id=eq.main&select=store');
+  if (Array.isArray(rows) && rows.length) return normalizeStore(rows[0].store);
+
+  // Import the current Redis snapshot once. The upsert ignores conflicts so concurrent
+  // first requests cannot overwrite a store that another request has already seeded.
+  let initialStore = emptyStore();
+  if (KV_URL && KV_TOKEN) {
+    const legacyValue = await redisCommand('GET', KV_KEY);
+    if (legacyValue) initialStore = normalizeStore(JSON.parse(legacyValue));
+  } else if (!SUPABASE_ALLOW_EMPTY_STORE) {
+    const error = new Error('ไม่พบการเชื่อมต่อ Upstash สำหรับย้ายข้อมูลเดิม กรุณาคงค่าฐานข้อมูลเดิมไว้หรือสำรองข้อมูลก่อนเริ่มฐานข้อมูลใหม่');
+    error.status = 503;
+    throw error;
+  }
+  await supabaseRequest('campulse_store?on_conflict=id', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=ignore-duplicates,return=minimal' },
+    body: JSON.stringify([{ id: 'main', store: initialStore }]),
+  });
+  const seededRows = await supabaseRequest('campulse_store?id=eq.main&select=store');
+  if (!Array.isArray(seededRows) || !seededRows.length) {
+    const error = new Error('ไม่พบข้อมูลตั้งต้นใน Supabase กรุณาตรวจสอบ migration');
+    error.status = 503;
+    throw error;
+  }
+  return normalizeStore(seededRows[0].store);
+}
 async function readStore() {
   const requestContext = storeRequestContext.getStore();
   if (requestContext?.storePromise) return requestContext.storePromise;
   const storePromise = (async () => {
+    if (SUPABASE_CONFIGURED) return readSupabaseStore();
     if (process.env.VERCEL || KV_URL || KV_TOKEN) {
       const value = await redisCommand('GET', KV_KEY);
       return value ? normalizeStore(JSON.parse(value)) : emptyStore();
@@ -259,6 +328,14 @@ async function readStore() {
   return storePromise;
 }
 async function writeStore(store) {
+  if (SUPABASE_CONFIGURED) {
+    await supabaseRequest('campulse_store?on_conflict=id', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify([{ id: 'main', store, updated_at: new Date().toISOString() }]),
+    });
+    return;
+  }
   if (process.env.VERCEL || KV_URL || KV_TOKEN) {
     await redisCommand('SET', KV_KEY, JSON.stringify(store));
     return;
@@ -268,6 +345,20 @@ async function writeStore(store) {
   fs.renameSync(temp, DATA_FILE);
 }
 async function acquireStoreLock() {
+  if (SUPABASE_CONFIGURED) {
+    const token = crypto.randomUUID();
+    for (let attempt = 0; attempt < 25; attempt++) {
+      const acquired = await supabaseRequest('rpc/campulse_acquire_lock', {
+        method: 'POST',
+        body: JSON.stringify({ p_token: token, p_ttl_ms: 12000 }),
+      });
+      if (acquired === true) return { supabase: true, token };
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    const error = new Error('ระบบกำลังบันทึกข้อมูล กรุณาลองอีกครั้ง');
+    error.status = 503;
+    throw error;
+  }
   if (!(process.env.VERCEL || KV_URL || KV_TOKEN)) {
     let unlock;
     const lock = new Promise((resolve) => { unlock = resolve; });
@@ -288,6 +379,17 @@ async function acquireStoreLock() {
 }
 async function releaseStoreLock(token) {
   if (!token) return;
+  if (token.supabase) {
+    try {
+      await supabaseRequest('rpc/campulse_release_lock', {
+        method: 'POST',
+        body: JSON.stringify({ p_token: token.token }),
+      });
+    } catch (error) {
+      console.error('Could not release the Supabase data-store lock:', error.message);
+    }
+    return;
+  }
   if (token.local) {
     token.unlock();
     return;
