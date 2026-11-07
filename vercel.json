@@ -10,6 +10,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "campulse-override.css",
+      "use": "@vercel/static"
+    },
+    {
       "src": "script.js",
       "use": "@vercel/static"
     },
