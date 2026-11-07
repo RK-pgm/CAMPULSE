@@ -285,7 +285,7 @@ async function readSupabaseStore() {
   // Import the current Redis snapshot once. The upsert ignores conflicts so concurrent
   // first requests cannot overwrite a store that another request has already seeded.
   let initialStore = emptyStore();
-  if (KV_URL && KV_TOKEN) {
+  if (KV_URL && KV_TOKEN && !SUPABASE_ALLOW_EMPTY_STORE) {
     const legacyValue = await redisCommand('GET', KV_KEY);
     if (legacyValue) initialStore = normalizeStore(JSON.parse(legacyValue));
   } else if (!SUPABASE_ALLOW_EMPTY_STORE) {
